@@ -6,8 +6,6 @@
   <img src="https://img.shields.io/badge/Built%20With-Kotlin%20%7C%20Jetpack%20Compose-blue" />
   <img src="https://img.shields.io/badge/AI-Gemini%20API%20%7C%20Vosk-red" />
   <img src="https://img.shields.io/badge/License-MIT-green" />
-  [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-
 </p>
 
 ---
@@ -72,6 +70,7 @@ Contributions are welcome! Feel free to open issues or PRs.
 ---
 
 ## 📄 License
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
 
 **Licensed under the Creative Commons Attribution-NonCommercial 4.0**
