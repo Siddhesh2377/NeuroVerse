@@ -71,8 +71,30 @@ Contributions are welcome! Feel free to open issues or PRs.
 
 ## 📄 License
 
-Licensed under the [MIT License](LICENSE).
+**Licensed under the Creative Commons Attribution-NonCommercial 4.0**
 
+`
+Copyright (c) 2025 Siddhesh Sonar
+
+This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License.
+
+You are free to:
+
+* **Share** — copy and redistribute the material in any medium or format
+* **Adapt** — remix, transform, and build upon the material
+
+Under the following terms:
+
+* **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+* **NonCommercial** — You may not use the material for commercial purposes without explicit written permission from the author.
+
+Patent Disclaimer:
+The author reserves all rights to any inventions or patents described or implemented in this software. Use of this software in a manner that infringes on the author's patents, or for commercial purposes, is strictly prohibited without a separate license agreement.
+
+For commercial licensing or inquiries, contact: [siddhesh.sonar@example.com](mailto:siddheshsonar2377@gmail.com) (replace with your real contact)
+
+To view a copy of this license, visit: [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/)
+`
 ---
 
 ## ✨ Author
