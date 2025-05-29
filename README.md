@@ -22,7 +22,9 @@
 ---
 
 ## 📸 Screenshots
-![image](https://github.com/user-attachments/assets/1eda42a8-8e76-4401-b6fc-85cf24bf8a31)
+
+<img src="https://github.com/user-attachments/assets/1eda42a8-8e76-4401-b6fc-85cf24bf8a31" width="250"/>
+
 
 
 ---
