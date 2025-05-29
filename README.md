@@ -73,28 +73,35 @@ Contributions are welcome! Feel free to open issues or PRs.
 
 **Licensed under the Creative Commons Attribution-NonCommercial 4.0**
 
-`
+```
 Copyright (c) 2025 Siddhesh Sonar
 
-This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License.
+This software and associated content are protected under the Creative Commons Attribution-NonCommercial 4.0 International License.
 
-You are free to:
+You are permitted to:
 
-* **Share** — copy and redistribute the material in any medium or format
-* **Adapt** — remix, transform, and build upon the material
+- Share — Copy and redistribute the material in any medium or format.
+- Adapt — Remix, transform, and build upon the material for non-commercial purposes.
 
-Under the following terms:
+Under the following conditions:
 
-* **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-* **NonCommercial** — You may not use the material for commercial purposes without explicit written permission from the author.
+- Attribution — You must provide appropriate credit, include a link to the license, and indicate if changes were made. Attribution must not suggest endorsement by the original author.
+- NonCommercial — You may not use the material for commercial purposes, including but not limited to: selling, licensing, bundling, or integrating into paid products or services, without explicit written permission.
 
-Patent Disclaimer:
-The author reserves all rights to any inventions or patents described or implemented in this software. Use of this software in a manner that infringes on the author's patents, or for commercial purposes, is strictly prohibited without a separate license agreement.
+Patent and Usage Disclaimer:
+All rights related to any novel techniques, inventions, or patents implemented or implied by this software are reserved by the author. Unauthorized use of patented techniques, especially for commercial gain, is strictly prohibited.
 
-For commercial licensing or inquiries, contact: [siddhesh.sonar@example.com](mailto:siddheshsonar2377@gmail.com) (replace with your real contact)
+If you wish to:
+✔ Use this software commercially
+✔ Obtain a commercial license
+✔ Inquire about patents or innovations
 
-To view a copy of this license, visit: [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/)
-`
+Please contact: siddheshsonar2377@gmail.com
+
+Full license details: https://creativecommons.org/licenses/by-nc/4.0/
+```
+
+
 ---
 
 ## ✨ Author
