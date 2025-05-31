@@ -2,6 +2,7 @@ package com.dark.neuroverse.neurov
 
 import android.content.Context
 import android.util.Log
+import com.dark.neuroverse.BuildConfig
 import com.dark.neuroverse.neurov.db.AppDatabase
 import com.dark.neuroverse.neurov.db.data.ChatMessage
 import com.dark.neuroverse.neurov.mcp.tools.ProgramsTool
@@ -127,8 +128,8 @@ suspend fun sendMessage(context: Context, prompt: String): String =
             try {
                 val response = api.chat(
                     body,
-                    auth = "Bearer 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",
-                    referer = "com.dark.op"
+                    auth = "Bearer ${BuildConfig.API_KEY}",
+                    referer = "com.dark.neuroverse"
                 ).execute()
 
                 val text = if (response.isSuccessful) {

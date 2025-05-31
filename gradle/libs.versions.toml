@@ -12,6 +12,7 @@ materialIconsExtended = "1.7.8"
 material3 = "1.4.0-alpha15"
 gson = "2.13.1"
 roomRuntime = "2.7.1"
+secretsPlugin = "0.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

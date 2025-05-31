@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -17,6 +20,14 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndkVersion = "29.0.13113456"
+
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        localProperties.load(FileInputStream(localPropertiesFile))
+
+        buildConfigField("String", "API_KEY", "${localProperties.getProperty("API_KEY")}")
+
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
@@ -40,6 +51,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
