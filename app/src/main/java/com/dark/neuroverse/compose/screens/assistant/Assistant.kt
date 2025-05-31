@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.dark.neuroverse.neurov.Command
 import com.dark.neuroverse.neurov.executePrompt
 import com.dark.neuroverse.neurov.mcp.engine.ActionRunner
 import com.dark.neuroverse.neurov.mcp.voice.STT
@@ -47,6 +48,7 @@ fun AssistantScreen(onClickOutside: () -> Unit) {
     var fullMessage by remember { mutableStateOf("Waiting for input...") }
     var animatedMessage by remember { mutableStateOf("Hello User I am Here To Help You navigate Your PHONE with ease") }
     var isListening by remember { mutableStateOf(false) }
+    var command: Command? by remember { mutableStateOf(Command("open_app", "YouTube")) }
     var isRecognizerReady by remember { mutableStateOf(false) }
 
     val stt = remember { STT(context) }
@@ -113,14 +115,15 @@ fun AssistantScreen(onClickOutside: () -> Unit) {
                         if (userPrompt.isNotBlank()) {
                             // Run Gemini and animate message
                             CoroutineScope(Dispatchers.IO).launch {
-                                val command = executePrompt(userPrompt, context)
+                                executePrompt(userPrompt, context) {
+                                    command = it
 
-                                fullMessage = if (command != null)
-                                    "Action: ${if (command.action == "open_app") "Opening App : ${command.app}" else "Running Command"}"
-                                else
-                                    "Sorry, I couldn't understand that."
+                                    fullMessage =
+                                        command?.let { "Action: ${if (it.action == "open_app") "Opening App : ${it.app}" else "Running Command"}" }
+                                            .toString()
 
-                                userPrompt = ""
+                                    userPrompt = ""
+                                }
                                 // Animate response
                                 animatedMessage = ""
                                 fullMessage.forEach { char ->
@@ -131,7 +134,10 @@ fun AssistantScreen(onClickOutside: () -> Unit) {
                                 // Trigger action
                                 command?.let {
                                     ActionRunner(it, context).execute { action, output ->
-                                        Log.d("ActionRunner", "Action: $action, Output: $output")
+                                        Log.d(
+                                            "ActionRunner",
+                                            "Action: $action, Output: $output"
+                                        )
                                     }
                                 }
                             }

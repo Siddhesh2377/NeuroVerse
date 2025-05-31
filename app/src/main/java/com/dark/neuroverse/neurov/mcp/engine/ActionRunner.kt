@@ -48,7 +48,10 @@ class ActionRunner(
             }
 
             val matchedApp = appList.find {
-                it.name.contains(appName, ignoreCase = true) || it.packageName.contains(appName.replace(" ", "").lowercase())
+                it.name.contains(
+                    appName,
+                    ignoreCase = true
+                ) || it.packageName.contains(appName.replace(" ", "").lowercase())
             }
 
             if (matchedApp == null) {

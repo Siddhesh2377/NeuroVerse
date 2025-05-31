@@ -6,6 +6,7 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
+import com.google.gson.JsonParser
 import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.StorageService
@@ -65,7 +66,9 @@ class STT(private val context: Context) {
                     if (read > 0 && recognizer?.acceptWaveForm(buffer, read) == true) {
                         val result = recognizer?.result
                         Log.d("Vosk", "Result: $result")
-                        onResult(result.toString())
+                        val jsonElement = JsonParser.parseString(result.toString())
+                        val textValue = jsonElement.asJsonObject.get("text").asString
+                        onResult(textValue)
                     }
                 }
             } catch (e: Exception) {

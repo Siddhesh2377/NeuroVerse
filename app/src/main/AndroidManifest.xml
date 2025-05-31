@@ -6,6 +6,7 @@
         android:name="android.permission.BIND_VOICE_INTERACTION"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <queries>
         <intent>
@@ -42,7 +43,7 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@android:style/Theme.Translucent" />
 
 
         <service
@@ -74,6 +75,9 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
+        <service
+            android:name=".services.NeuroVoiceInteractionSessionService"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
     </application>
 
 </manifest>

@@ -32,8 +32,9 @@ fun HomeScreen(paddingValues: PaddingValues) {
     ) {
         ElevatedButton(
             onClick = {
-                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
                 context.startActivity(intent)
+
             },
             colors = ButtonDefaults.buttonColors().copy(containerColor = LightBlack)
         ) {
