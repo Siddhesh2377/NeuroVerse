@@ -2,6 +2,8 @@ package com.dark.neuroverse.neurov
 
 import android.content.Context
 import android.util.Log
+import com.dark.neuroverse.neurov.db.AppDatabase
+import com.dark.neuroverse.neurov.db.data.ChatMessage
 import com.dark.neuroverse.neurov.mcp.tools.ProgramsTool
 import com.google.gson.Gson
 import com.google.gson.JsonParser
@@ -32,20 +34,43 @@ data class Command(
 
 
 suspend fun executePrompt(input: String, context: Context, onResult: (Command?) -> Unit) {
-    val outputText = sendMessage(context, input)
+    val db = AppDatabase.getInstance(context)
+    val dao = db.chatDao()
 
+    // Fetch recent context
+    val history = dao.getRecentMessages(10).reversed()  // oldest to newest
+    val contextPrompt = buildString {
+        history.forEach {
+            append(if (it.isUser) "User: ${it.message}" else "AI: ${it.message}")
+            append("\n")
+        }
+        append("User: $input")
+    }
+
+    // Store user input in DB
+    CoroutineScope(Dispatchers.IO).launch {
+        dao.insertMessage(ChatMessage(message = input, isUser = true))
+    }
+
+    val outputText = sendMessage(context, contextPrompt)
+
+    // Extract clean JSON
     val jsonStart = outputText.indexOf("{")
     val jsonEnd = outputText.lastIndexOf("}")
     val cleanJson = if (jsonStart != -1 && jsonEnd != -1) {
         outputText.substring(jsonStart, jsonEnd + 1)
-    } else {
-        outputText
-    }
+    } else outputText
 
     Log.d("Gemini Output", cleanJson)
 
     try {
         val command = Gson().fromJson(cleanJson, Command::class.java)
+
+        // Store AI response
+        CoroutineScope(Dispatchers.IO).launch {
+            dao.insertMessage(ChatMessage(message = cleanJson, isUser = false))
+        }
+
         onResult(command)
     } catch (e: Exception) {
         Log.e("Gemini Error", "Parsing error: ${e.message}")

@@ -1,27 +1,34 @@
 package com.dark.neuroverse.compose.screens
 
+import android.Manifest
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import com.dark.neuroverse.compose.components.SnackbarDemoScreen
 import com.dark.neuroverse.ui.theme.LightBlack
 
 @Composable
 fun HomeScreen(paddingValues: PaddingValues) {
-
     val context = LocalContext.current
+
+    // Launcher for permission request
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+                context.startActivity(intent)
+            }
+        }
+    )
 
     Column(
         modifier = Modifier
@@ -32,9 +39,7 @@ fun HomeScreen(paddingValues: PaddingValues) {
     ) {
         ElevatedButton(
             onClick = {
-                val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
-                context.startActivity(intent)
-
+                audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             },
             colors = ButtonDefaults.buttonColors().copy(containerColor = LightBlack)
         ) {

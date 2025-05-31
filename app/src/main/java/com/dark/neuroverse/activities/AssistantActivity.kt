@@ -33,7 +33,7 @@ class AssistantActivity : ComponentActivity() {
 
         setContent {
             NeuroVerseTheme {
-                AssistantScreen(onClickOutside = { finish() })
+
             }
         }
     }
