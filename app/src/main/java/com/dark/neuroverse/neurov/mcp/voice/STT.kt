@@ -95,7 +95,7 @@ class AudioRecorder() {
     private var recordingThread: Thread? = null
     private var isRecording = false
 
-    fun start(outputFile: File, silenceTimeoutMs: Long = 4000, onResult: () -> Unit) {
+    fun start(outputFile: File, silenceTimeoutMs: Long = 2500, onResult: () -> Unit) {
         isRecording = true
         audioRecord.startRecording()
 

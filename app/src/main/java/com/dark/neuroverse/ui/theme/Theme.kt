@@ -26,6 +26,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Black
 )
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NeuroVerseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -45,6 +46,7 @@ fun NeuroVerseTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        motionScheme = MotionScheme.expressive(),
         content = content
     )
 }

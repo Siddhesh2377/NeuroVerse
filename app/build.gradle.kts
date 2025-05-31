@@ -13,11 +13,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.dark.neuroverse"
+        applicationId = "com.dark.neurov"
         minSdk = 33
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1-beta"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndkVersion = "29.0.13113456"
 
@@ -32,7 +32,7 @@ android {
             System.getenv("API_KEY") ?: ""
         }
 
-        buildConfigField("String", "API_KEY", "\"$apiKey\"")
+        buildConfigField("String", "API_KEY", "$apiKey")
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -73,6 +73,8 @@ dependencies {
 
     //UTILS
     implementation(libs.google.gson)
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+
 
     //AI
     implementation("net.java.dev.jna:jna:5.13.0@aar")
