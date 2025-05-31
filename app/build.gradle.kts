@@ -22,11 +22,17 @@ android {
         ndkVersion = "29.0.13113456"
 
 
-        val localProperties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
-        localProperties.load(FileInputStream(localPropertiesFile))
+        val apiKey = if (localPropertiesFile.exists()) {
+            val localProps = Properties().apply {
+                load(FileInputStream(localPropertiesFile))
+            }
+            localProps.getProperty("API_KEY")
+        } else {
+            System.getenv("API_KEY") ?: ""
+        }
 
-        buildConfigField("String", "API_KEY", "${localProperties.getProperty("API_KEY")}")
+        buildConfigField("String", "API_KEY", "\"$apiKey\"")
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
