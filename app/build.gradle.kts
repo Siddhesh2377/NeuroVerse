@@ -73,6 +73,8 @@ android {
 dependencies {
 
     //PROJECTS
+    implementation(project(":plugin-api"))
+    implementation(project(":plugin-runtime"))
 
     //DATABASE
     implementation(libs.androidx.room.runtime)

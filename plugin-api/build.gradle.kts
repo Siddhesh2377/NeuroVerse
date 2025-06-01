@@ -44,16 +44,17 @@ android {
 
 afterEvaluate {
     tasks.register<Jar>("exportPluginApiJar") {
-        dependsOn("compileReleaseJavaWithJavac")
+        dependsOn("compileReleaseKotlin")
 
         archiveBaseName.set("plugin-api")
         archiveVersion.set("1.0.0")
         archiveClassifier.set("")
 
-        from(layout.buildDirectory.dir("intermediates/javac/release/classes").get().asFile)
+        from(layout.buildDirectory.dir("tmp/kotlin-classes/release").get().asFile)
         destinationDirectory.set(layout.buildDirectory.dir("libs").get().asFile)
     }
 }
+
 
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
