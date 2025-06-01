@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "NeuroVerse"
 include(":app")
+include(":plugin-api")

@@ -62,7 +62,7 @@ suspend fun executePrompt(input: String, context: Context, onResult: (Command?) 
         outputText.substring(jsonStart, jsonEnd + 1)
     } else outputText
 
-    Log.d("Gemini Output", cleanJson)
+    Log.d("Ai Output", cleanJson)
 
     try {
         val command = Gson().fromJson(cleanJson, Command::class.java)
@@ -74,7 +74,7 @@ suspend fun executePrompt(input: String, context: Context, onResult: (Command?) 
 
         onResult(command)
     } catch (e: Exception) {
-        Log.e("Gemini Error", "Parsing error: ${e.message}")
+        Log.e("Ai Error", "Parsing error: ${e.message}")
         onResult(null)
     }
 }
