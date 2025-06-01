@@ -18,43 +18,52 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.dark.neuroverse.compose.screens.assistant.AssistantScreen
 
+/**
+ * A VoiceInteractionSessionService that hosts a Compose-based AssistantScreen.
+ * Optimized for memory efficiency by minimizing object retention and redundant logs.
+ */
 class NeuroVoiceInteractionSessionService : VoiceInteractionSessionService() {
     override fun onNewSession(args: Bundle?): VoiceInteractionSession {
-        Log.d("NeuroSessionService", "onNewSession called")
+        Log.d(TAG, "onNewSession")
         return NeuroSession(this)
+    }
+
+    companion object {
+        private const val TAG = "NeuroVoiceService"
     }
 }
 
+/**
+ * The NeuroSession hosts the Compose UI inside the voice interaction session.
+ * We maintain only one lifecycle owner and saved state registry to reduce overhead.
+ */
 class NeuroSession(context: Context) : VoiceInteractionSession(context) {
-
-    private lateinit var lifecycleOwner: FakeLifecycleOwner
-    private lateinit var savedStateRegistryOwner: FakeSavedStateRegistryOwner
+    private val lifecycleOwner = SimpleLifecycleOwner()
+    private val savedStateRegistryOwner = SimpleSavedStateRegistryOwner(lifecycleOwner)
+    private var composeRoot: FrameLayout? = null
 
     override fun onCreate() {
         super.onCreate()
-        Log.d("NeuroSession", "onCreate: Creating Compose UI inside VoiceInteractionSession")
+        Log.d(TAG, "Session onCreate")
 
-        lifecycleOwner = FakeLifecycleOwner()
-        savedStateRegistryOwner = FakeSavedStateRegistryOwner(lifecycleOwner)
+        // Restore saved state (if any) without passing a bundle for now
         savedStateRegistryOwner.performRestore(null)
 
+        // Create a root container
         val root = FrameLayout(context).apply {
+            // Attach lifecycle and saved state owners to this view hierarchy
             setViewTreeLifecycleOwner(lifecycleOwner)
             setViewTreeSavedStateRegistryOwner(savedStateRegistryOwner)
         }
 
+        // Create and configure ComposeView
         val composeView = ComposeView(context).apply {
+            // Dispose composition when detached to free resources
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setContent {
                 AssistantScreen(
-                    onClickOutside = {
-                        Log.d("NeuroSession", "AssistantScreen onClickOutside, finishing session.")
-                        finish() // This is for the grey area click
-                    },
-                    onActionCompleted = { // Pass the new callback
-                        Log.d("NeuroSession", "Action completed, finishing session.")
-                        finish()
-                    }
+                    onClickOutside = { finish() },
+                    onActionCompleted = { finish() }
                 )
             }
             layoutParams = FrameLayout.LayoutParams(
@@ -62,93 +71,93 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         }
+
+        // Add ComposeView to root and set as content
         root.addView(composeView)
         setContentView(root)
+        composeRoot = root
 
+        // Move lifecycle to CREATED
         lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-        Log.d("NeuroSession", "onCreate: Compose UI created.")
+        Log.d(TAG, "Session UI created")
     }
-
-    // ... (onShow, onHide, onDestroy remain the same) ...
 
     override fun onShow(args: Bundle?, showFlags: Int) {
         super.onShow(args, showFlags)
-        Log.d("NeuroSession", "onShow: Voice interaction UI shown. Moving Lifecycle to RESUMED.")
-        if (::lifecycleOwner.isInitialized) {
-            lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_START)
-            lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
-        }
+        // Move lifecycle to RESUMED
+        lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_START)
+        lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        Log.d(TAG, "Session onShow: Resumed")
     }
 
     override fun onHide() {
         super.onHide()
-        Log.d("NeuroSession", "onHide: Voice interaction UI hidden. Moving Lifecycle to PAUSED.")
-        if (::lifecycleOwner.isInitialized) {
-            lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-        }
+        // Move lifecycle to PAUSED
+        lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+        Log.d(TAG, "Session onHide: Paused")
     }
 
     override fun onDestroy() {
-        Log.d("NeuroSession", "onDestroy: Destroying session. Moving Lifecycle to DESTROYED.")
-        if (::lifecycleOwner.isInitialized) {
-            lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-            lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-        }
+        Log.d(TAG, "Session onDestroy: Cleaning up")
+        // Move lifecycle to DESTROYED
+        lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+
+        // Remove ComposeView to release resources
+        composeRoot?.removeAllViews()
+        composeRoot = null
         super.onDestroy()
+    }
+
+    companion object {
+        private const val TAG = "NeuroSession"
     }
 }
 
-// FakeLifecycleOwner and FakeSavedStateRegistryOwner remain the same
-// ... (FakeLifecycleOwner and FakeSavedStateRegistryOwner code)
-class FakeLifecycleOwner : LifecycleOwner {
-    private val lifecycleRegistry = LifecycleRegistry(this)
+/**
+ * A lightweight LifecycleOwner residing solely in memory,
+ * tracking its LifecycleRegistry state.
+ */
+private class SimpleLifecycleOwner : LifecycleOwner {
+    private val lifecycleRegistry = LifecycleRegistry(this).apply {
+        currentState = Lifecycle.State.INITIALIZED
+    }
 
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
-    init {
-        lifecycleRegistry.currentState = Lifecycle.State.INITIALIZED
-        Log.d("FakeLifecycleOwner", "Lifecycle initialized.")
-    }
-
     fun handleLifecycleEvent(event: Lifecycle.Event) {
         lifecycleRegistry.handleLifecycleEvent(event)
-        Log.d(
-            "FakeLifecycleOwner",
-            "Lifecycle event: $event, Current state: ${lifecycleRegistry.currentState}"
-        )
+        Log.d("SimpleLifecycleOwner", "Event: $event, State: ${lifecycleRegistry.currentState}")
     }
 }
 
-class FakeSavedStateRegistryOwner(
-    private val lifecycleOwnerForState: LifecycleOwner
+/**
+ * Simplified SavedStateRegistryOwner that observes the lifecycle of another owner.
+ * Minimizes overhead by using a single SavedStateRegistryController.
+ */
+private class SimpleSavedStateRegistryOwner(
+    lifecycleOwnerForState: LifecycleOwner
 ) : SavedStateRegistryOwner {
     private val controller = SavedStateRegistryController.create(this)
 
     override val savedStateRegistry: SavedStateRegistry
         get() = controller.savedStateRegistry
 
-    override val lifecycle: Lifecycle
-        get() = lifecycleOwnerForState.lifecycle
+    override val lifecycle: Lifecycle = lifecycleOwnerForState.lifecycle
 
     init {
-        Log.d(
-            "FakeSavedStateRegistryOwner",
-            "SavedStateRegistryOwner initialized. Controller will observe its lifecycle: ${this.lifecycle.currentState}"
-        )
+        Log.d("SimpleSavedStateOwner", "Initialized with lifecycle: ${lifecycle.currentState}")
     }
 
     fun performRestore(savedState: Bundle?) {
         controller.performRestore(savedState)
-        Log.d(
-            "FakeSavedStateRegistryOwner",
-            "performRestore explicitly called with bundle: $savedState. Lifecycle state: ${lifecycle.currentState}"
-        )
+        Log.d("SimpleSavedStateOwner", "performRestore called")
     }
 
-    @Deprecated("performSave is typically handled by the controller observing the lifecycle.")
+    @Deprecated("performSave is typically auto-managed.")
     fun performSave(outBundle: Bundle) {
         controller.performSave(outBundle)
-        Log.d("FakeSavedStateRegistryOwner", "performSave explicitly called.")
+        Log.d("SimpleSavedStateOwner", "performSave called")
     }
 }

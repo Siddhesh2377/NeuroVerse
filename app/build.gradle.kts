@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.Packaging
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -37,6 +38,14 @@ android {
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
+
+
+    }
+
+    packaging {
+        resources.pickFirsts += listOf(
+            "lib/**/libonnxruntime.so"
+        )
     }
 
     buildTypes {
@@ -64,7 +73,6 @@ android {
 dependencies {
 
     //PROJECTS
-    implementation(project(":models"))
 
     //DATABASE
     implementation(libs.androidx.room.runtime)
@@ -76,9 +84,11 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.7")
 
 
+
     //AI
-    implementation("net.java.dev.jna:jna:5.13.0@aar")
-    implementation("com.alphacephei:vosk-android:0.3.47@aar")
+//    implementation("net.java.dev.jna:jna:5.13.0@aar")
+//    implementation("com.alphacephei:vosk-android:0.3.47@aar")
+
 
     //API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
