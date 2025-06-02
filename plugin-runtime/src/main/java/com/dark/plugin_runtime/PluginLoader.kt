@@ -91,7 +91,8 @@ class PluginLoader(private val context: Context) {
         )
 
         val clazz = classLoader.loadClass(mainClassName)
-        val instance = clazz.getDeclaredConstructor().newInstance()
+        val constructor = clazz.getDeclaredConstructor(Context::class.java)
+        val instance = constructor.newInstance(context)
 
         Log.d("Instance", "Instance: $instance")
 
