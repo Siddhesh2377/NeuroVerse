@@ -29,7 +29,7 @@ android {
             }
             localProps.getProperty("API_KEY") ?: ""
         } else {
-            System.getenv("API_KEY") ?: "sample_dev_key"
+            System.getenv("API_KEY") ?: "/"sample_dev_key"/"
         }
 
         buildConfigField("String", "API_KEY", apiKey)
