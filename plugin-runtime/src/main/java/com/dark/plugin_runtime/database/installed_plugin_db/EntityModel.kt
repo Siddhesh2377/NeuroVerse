@@ -9,6 +9,8 @@ data class InstalledPluginModel(
     val id: Int = 0,
     val pluginName: String,
     val pluginPermissions: List<String>,
+    val manifestFile: String,
     var mainClass: String,
-    val pluginApi: String
+    val pluginApi: String,
+    val pluginPath: String
 )

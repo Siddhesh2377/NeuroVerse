@@ -1,8 +1,13 @@
 package com.dark.plugin_runtime
 
 import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
+import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
+import org.json.JSONObject
 import java.io.File
+import java.io.FileNotFoundException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -12,44 +17,93 @@ class PluginManager(private val context: Context) {
         private const val TAG = "PluginManager"
     }
 
-
     private fun getPluginFolder(pluginName: String): File =
         File(context.getDir("plugins", Context.MODE_PRIVATE), pluginName)
 
-    fun installPlugin(path: String, onResult: (pluginFolderPath: File) -> Unit) {
+    fun installPlugin(uri: Uri, onResult: (pluginInfo: InstalledPluginModel) -> Unit) {
+        val rawFileName = queryFileName(uri) ?: "plugin_${System.currentTimeMillis()}.zip"
+        val pluginName = rawFileName.substringBeforeLast('.')  // ✅ Strip .zip
+        val pluginFolder = getPluginFolder(pluginName.substringBeforeLast('.'))
 
-        val pluginFile = File(path)
-
-        val pluginFolder = getPluginFolder(pluginFile.nameWithoutExtension)
-
-        Log.d("PluginManager", "Plugin folder: $pluginFolder")
         pluginFolder.mkdirs()
-        ZipInputStream(pluginFile.inputStream()).use { zip ->
-            var entry: ZipEntry?
-            var extractedAny = false
 
-            while (zip.nextEntry.also { entry = it } != null) {
-                val outFile = File(pluginFolder, entry!!.name)
+        try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            ZipInputStream(inputStream).use { zip ->
+                var entry: ZipEntry?
+                var extractedAny = false
 
-                // ✅ Ensure directories exist
-                outFile.parentFile?.mkdirs()
+                while (zip.nextEntry.also { entry = it } != null) {
+                    val outFile = File(pluginFolder, entry!!.name)
 
-                // ✅ Write file
-                zip.copyTo(outFile.outputStream())
-                zip.closeEntry()
+                    if (entry.isDirectory) {
+                        outFile.mkdirs()
+                    } else {
+                        outFile.parentFile?.mkdirs()
+                        zip.copyTo(outFile.outputStream())
+                        zip.closeEntry()
+                        extractedAny = true
+                    }
+                }
 
-                extractedAny = true
+                if (!extractedAny) {
+                    Log.d(TAG, "❌ ZIP archive is empty.")
+                } else {
+                    Log.d(TAG, "📦 Successfully extracted plugin")
+                    onResult(readPluginInfo(pluginName))
+                }
             }
-
-            if (!extractedAny) {
-                Log.d(TAG, "❌ ZIP archive is empty — no files extracted.")
-            } else {
-                Log.d(TAG, "📦 Successfully extracted plugin")
-                onResult(pluginFolder)
-            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to install plugin", e)
         }
-
-
     }
+
+    fun readPluginInfo(pluginName: String): InstalledPluginModel {
+        val pluginFolder = getPluginFolder(pluginName)
+        val manifestFilePath = File(pluginFolder, "manifest.json")
+        if (!manifestFilePath.exists()) throw FileNotFoundException("❌ manifest.json not found at $manifestFilePath")
+        Log.d(TAG, "✅ Found manifest.json at: ${manifestFilePath.absolutePath}")
+        val manifest = JSONObject(manifestFilePath.readText())
+        val pluginName = manifest.getString("name")
+        val mainClassName = manifest.getString("main")
+        val permissions = (0 until manifest.getJSONArray("permissions")
+            .length()).map { manifest.getJSONArray("permissions").getString(it) }
+        return InstalledPluginModel(
+            pluginName = pluginName,
+            pluginPermissions = permissions,
+            mainClass = mainClassName,
+            manifestFile = manifestFilePath.path,
+            pluginPath = pluginFolder.path,
+            pluginApi = "1.0.0"
+        )
+    }
+
+    private fun queryFileName(uri: Uri): String? {
+        val cursor = context.contentResolver.query(uri, null, null, null, null) ?: return null
+        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        cursor.moveToFirst()
+        val name = if (nameIndex >= 0) cursor.getString(nameIndex) else null
+        cursor.close()
+        return name
+    }
+
+    fun unInstallPlugin(path: String, onResult: (boolean: Boolean) -> Unit) {
+        val file = File(path)
+        Log.d("PluginManager", "❌ Deleting plugin at: $path")
+        if (file.exists()) {
+            val deleted = file.deleteRecursively()
+            if (deleted) {
+                Log.d("PluginManager", "✅ Plugin deleted: $path")
+                onResult(true)
+            } else {
+                Log.e("PluginManager", "❌ Failed to delete plugin at: $path")
+                onResult(false)
+            }
+        } else {
+            Log.w("PluginManager", "⚠️ Plugin path does not exist: $path")
+            onResult(false)
+        }
+    }
+
 
 }
