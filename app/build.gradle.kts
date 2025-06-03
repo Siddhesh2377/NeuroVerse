@@ -22,18 +22,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndkVersion = "29.0.13113456"
 
-
         val localPropertiesFile = rootProject.file("local.properties")
         val apiKey = if (localPropertiesFile.exists()) {
             val localProps = Properties().apply {
                 load(FileInputStream(localPropertiesFile))
             }
-            localProps.getProperty("API_KEY")
+            localProps.getProperty("API_KEY") ?: ""
         } else {
-            System.getenv("API_KEY") ?: ""
+            System.getenv("API_KEY") ?: "sample_dev_key"
         }
 
-        buildConfigField("String", "API_KEY", "$apiKey")
+        buildConfigField("String", "API_KEY", apiKey)
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
