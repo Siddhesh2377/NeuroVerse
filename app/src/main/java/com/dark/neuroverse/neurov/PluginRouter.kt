@@ -1,12 +1,7 @@
 package com.dark.neuroverse.neurov
 
 import android.content.Context
-import android.util.Log
 import com.dark.neuroverse.BuildConfig
-import com.dark.neuroverse.neurov.db.AppDatabase
-import com.dark.neuroverse.neurov.db.data.ChatMessage
-import com.dark.neuroverse.neurov.mcp.tools.ProgramsTool
-import com.google.gson.Gson
 import com.google.gson.JsonParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,57 +29,9 @@ data class Command(
 )
 
 
-suspend fun executePrompt(input: String, context: Context, onResult: (Command?) -> Unit) {
-    val db = AppDatabase.getInstance(context)
-    val dao = db.chatDao()
-
-    // Fetch recent context
-    val history = dao.getRecentMessages(10).reversed()  // oldest to newest
-    val contextPrompt = buildString {
-        history.forEach {
-            append(if (it.isUser) "User: ${it.message}" else "AI: ${it.message}")
-            append("\n")
-        }
-        append("User: $input")
-    }
-
-    // Store user input in DB
-    CoroutineScope(Dispatchers.IO).launch {
-        dao.insertMessage(ChatMessage(message = input, isUser = true))
-    }
-
-    val outputText = sendMessage(context, contextPrompt)
-
-    // Extract clean JSON
-    val jsonStart = outputText.indexOf("{")
-    val jsonEnd = outputText.lastIndexOf("}")
-    val cleanJson = if (jsonStart != -1 && jsonEnd != -1) {
-        outputText.substring(jsonStart, jsonEnd + 1)
-    } else outputText
-
-    Log.d("Ai Output", cleanJson)
-
-    try {
-        val command = Gson().fromJson(cleanJson, Command::class.java)
-
-        // Store AI response
-        CoroutineScope(Dispatchers.IO).launch {
-            dao.insertMessage(ChatMessage(message = cleanJson, isUser = false))
-        }
-
-        onResult(command)
-    } catch (e: Exception) {
-        Log.e("Ai Error", "Parsing error: ${e.message}")
-        onResult(null)
-    }
-}
-
-
 @OptIn(ExperimentalCoroutinesApi::class)
-suspend fun sendMessage(context: Context, prompt: String): String =
+suspend fun sendMessage(context: Context): String =
     suspendCancellableCoroutine { cont ->
-        val apps = ProgramsTool().listApps(context)
-        val appNames = apps.joinToString(", ") { it.name }
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://openrouter.ai/api/")
@@ -94,31 +41,10 @@ suspend fun sendMessage(context: Context, prompt: String): String =
 
         val api = retrofit.create(OpenRouterApi::class.java)
 
-        val fullPrompt = """
-        You are an AI assistant that converts user instructions into JSON.
-        Always respond with JSON only. No extra decoration like ```json or any title – just the pure JSON.
-
-        Schema:
-        {
-          "action": "open_app" | "send_message" | "search" | "play_music",
-          "app": "<app_name>",
-          "input": "<input_text>"
-        }
-
-        Here is the list of installed apps on device:
-        [$appNames]
-
-        Examples:
-        - "Open YouTube please" → {"action": "open_app", "app": "YouTube"}
-        - "Launch Google Chrome" → {"action": "open_app", "app": "Chrome"}
-        - "Play some music" → {"action": "play_music", "app": "Spotify"}
-
-        Now interpret this: $prompt
-    """.trimIndent()
 
         val jsonBody = JSONObject().apply {
             put("model", "google/gemma-3n-e4b-it:free")
-            put("prompt", fullPrompt)
+            put("prompt", "fullPrompt")
             put("max_tokens", 512)
         }.toString()
 

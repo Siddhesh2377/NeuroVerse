@@ -3,7 +3,6 @@
 package com.dark.neuroverse.compose.screens.assistant
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
@@ -42,17 +41,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.dark.neuroverse.neurov.Command
-import com.dark.neuroverse.neurov.executePrompt
-import com.dark.neuroverse.neurov.mcp.engine.ActionRunner
 import com.dark.neuroverse.neurov.mcp.voice.GoogleSpeechRecognizer
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.ui.theme.White
 import kotlinx.coroutines.delay
 
 /**
- * This is the top-level Composable screen. Any UI elements
- * (Text, LoadingIndicator, ListenButton, etc.) live inside a @Composable.
+ * Top-level Composable screen for the assistant interface.
  */
 @SuppressLint("MissingPermission")
 @Composable
@@ -85,30 +80,25 @@ fun AssistantScreen(
 
     LaunchedEffect(isListening) {
         if (isListening) {
-            recognizer.startListening() // must be on main thread
+            recognizer.startListening()
         } else {
-            recognizer.stopListening() // must be on main thread
+            recognizer.stopListening()
         }
     }
-
 
     LaunchedEffect(userPrompt) {
         delay(1200)
-
         try {
-            runPrompt(
-                context = context,
-                result = userPrompt,
-                onActionCompleted = onActionCompleted,
-                onResult = { cmd, message ->
-                    displayMessage = message
-                }
-            )
+            // Run the AI processing here. Set isProcessing = false when done.
+            // For example:
+            // val result = aiProcess(userPrompt)
+            // displayMessage = result
         } catch (e: Exception) {
             Log.e("AssistantScreen", "executePrompt failed: ${e.message}")
+        } finally {
+            isProcessing = false
         }
     }
-
 
     // UI
     NeuroVerseTheme {
@@ -181,42 +171,6 @@ fun AssistantScreen(
     }
 }
 
-
-private suspend fun runPrompt(
-    context: Context,
-    result: String,
-    onActionCompleted: () -> Unit,
-    onResult: (Command?, String) -> Unit
-) {
-    if (result.isNotBlank()) {
-        executePrompt(result, context) { cmd ->
-            val message = cmd?.let { command ->
-                when (command.action) {
-                    "open_app" -> "Opening App: ${command.app}"
-                    else -> "Running Command"
-                }
-            } ?: ""
-
-            onResult(cmd, message)
-            // ✅ Safely update UI from suspend scope
-//            withContext(Dispatchers.Main) {
-//                onResult(cmd, message)
-//            }
-
-            if (cmd != null) {
-                ActionRunner(cmd, context).execute { _, output ->
-                    Log.d("ActionRunner", "Output: $output")
-                    onActionCompleted()
-                }
-            }
-        }
-    }
-}
-
-
-// Corrected ListenButton implementation
-// The updateTransition call must be invoked directly in a @Composable context, not inside a lambda passed to remember.
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ListenButton(
@@ -224,38 +178,35 @@ private fun ListenButton(
     isProcessing: Boolean,
     onToggleListening: (Boolean) -> Unit
 ) {
+    // Animate scale and alpha based on listening state
+    val transition = updateTransition(targetState = isListening, label = "ListeningTransition")
+
+    val scale by transition.animateFloat(
+        transitionSpec = { tween(durationMillis = 500) },
+        label = "ScaleAnimation"
+    ) { state -> if (state) 1.1f else 1f }
+
+    val alpha by transition.animateFloat(
+        transitionSpec = { tween(durationMillis = 500) },
+        label = "AlphaAnimation"
+    ) { state -> if (state) 1f else 0.7f }
+
     Button(
         onClick = { onToggleListening(!isListening) },
         enabled = !isProcessing,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
-        // Directly call updateTransition in a composable scope
-        val transition = updateTransition(targetState = isListening, label = "ListeningTransition")
-
-        val scale by transition.animateFloat(
-            transitionSpec = { tween(durationMillis = 500) },
-            label = "ScaleAnimation"
-        ) { state -> if (state) 1.1f else 1f }
-
-        val alpha by transition.animateFloat(
-            transitionSpec = { tween(durationMillis = 500) },
-            label = "AlphaAnimation"
-        ) { state -> if (state) 1f else 0.5f }
-
         if (isProcessing) {
             LoadingIndicator(color = White)
         } else {
             Text(
                 text = if (isListening) "Stop Listening" else "Listen",
-                modifier = Modifier.graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    alpha = alpha
-                ),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
