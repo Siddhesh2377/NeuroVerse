@@ -46,6 +46,7 @@ dependencies {
 
     //DATABASE
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.runtime.android)
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)
 

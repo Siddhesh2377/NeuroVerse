@@ -4,7 +4,15 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import com.dark.plugin_api.info.Plugin
 import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
+import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
+import dalvik.system.DexClassLoader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
 import java.io.FileNotFoundException
@@ -105,5 +113,38 @@ class PluginManager(private val context: Context) {
         }
     }
 
+    fun runPlugin(pluginName: String) {
+        var db =  PluginInstalledDatabase.getInstance(context)
+        val scope = CoroutineScope(Dispatchers.IO)
+        scope.launch {
+            val pluginFolder = db.pluginDao().getPluginFolderByName(pluginName)
+
+            val pluginJar = File(pluginFolder, "plugin.jar")
+            val mainClass = db.pluginDao().getMainClassByName(pluginName)
+            if (!pluginJar.exists()) throw FileNotFoundException("❌ plugin.jar not found at $pluginJar")
+
+            //Copying the JAR file to a READ-ONLY folder : no dex can be executed in the WRITEABLE folder
+            val safeJar = File(context.noBackupFilesDir, "$pluginName-readonly.jar")
+            pluginJar.copyTo(safeJar, overwrite = true)
+            safeJar.setReadOnly()
+
+            val classLoader = DexClassLoader(
+                safeJar.absolutePath,
+                null,
+                null,
+                context.classLoader
+            )
+
+            val clazz = classLoader.loadClass(mainClass)
+            val constructor = clazz.getDeclaredConstructor(Context::class.java)
+            val instance = constructor.newInstance(context)
+
+
+            if (instance !is Plugin) {
+                throw IllegalStateException("❌ $mainClass does not implement Plugin interface")
+            }
+            Log.i(TAG, "✅ Loaded plugin class: ${instance.getName()}")
+        }
+    }
 
 }

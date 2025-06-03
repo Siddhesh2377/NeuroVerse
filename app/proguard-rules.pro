@@ -32,7 +32,7 @@
 }
 
 # Gson: keep model classes
--keep class com.dark.neuroverse.neurov.Command { *; }
+-keep class com.dark.neuroverse.neurov.mcp.ai.Command { *; }
 
 # Keep annotations & generics info
 -keepattributes Signature
