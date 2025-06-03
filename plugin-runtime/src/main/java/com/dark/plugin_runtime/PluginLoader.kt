@@ -3,6 +3,7 @@ package com.dark.plugin_runtime
 import android.content.Context
 import android.util.Log
 import com.dark.plugin_api.info.Plugin
+import com.dark.plugin_runtime.engine.model.PluginInfo
 import dalvik.system.DexClassLoader
 import org.json.JSONObject
 import java.io.File
@@ -59,7 +60,8 @@ class PluginLoader(private val context: Context) {
         copyAndExtractPluginZip(pluginName, pluginFolder)
         Log.i(TAG, "✅ Plugin extracted to: ${pluginFolder.absolutePath}")
     }
-    fun loadPlugin(pluginName: String): Plugin {
+
+    fun loadPlugin(pluginName: String, onResult: (PluginInfo) -> Unit): Plugin {
         val pluginFolder = getPluginFolder(pluginName)
 
         // ✅ Extract only if not already extracted
@@ -80,6 +82,11 @@ class PluginLoader(private val context: Context) {
 
         val manifest = JSONObject(manifestFile.readText())
         val mainClassName = manifest.getString("main")
+        val permissions = (0 until manifest.getJSONArray("permissions").length())
+            .map { manifest.getJSONArray("permissions").getString(it) }
+
+
+        Log.i(TAG, "✅ Permissions: $permissions")
 
         val optimizedDir = context.getDir("dex_opt", Context.MODE_PRIVATE)
 
@@ -99,6 +106,8 @@ class PluginLoader(private val context: Context) {
         if (instance !is Plugin) {
             throw IllegalStateException("❌ $mainClassName does not implement Plugin interface")
         }
+
+        onResult(PluginInfo(1, "plugin", permissions, mainClassName, instance))
 
         Log.i(TAG, "✅ Loaded plugin class: ${instance.getName()}")
         return instance

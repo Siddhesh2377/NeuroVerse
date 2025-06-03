@@ -85,13 +85,6 @@ dependencies {
     implementation(libs.google.gson)
     implementation("androidx.datastore:datastore-preferences:1.1.7")
 
-
-
-    //AI
-//    implementation("net.java.dev.jna:jna:5.13.0@aar")
-//    implementation("com.alphacephei:vosk-android:0.3.47@aar")
-
-
     //API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -99,6 +92,7 @@ dependencies {
 
     //KTX
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     //CORE-UI-LIBS
     implementation(platform(libs.androidx.compose.bom))
