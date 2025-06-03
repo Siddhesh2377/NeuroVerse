@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,13 +24,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Backpack
 import androidx.compose.material.icons.twotone.Delete
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,6 +55,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.dark.neuroverse.ui.theme.NeuroVerseTheme
+import com.dark.neuroverse.ui.theme.SoftWhite
 import com.dark.neuroverse.viewModel.PluginScreenViewModel
 import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
@@ -217,25 +222,29 @@ fun PluginScreenMainContent(
             Text("No Plugins Here...")
         }
     } else {
-        Column {
-            Spacer(modifier = Modifier.height(25.dp))
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 16.dp)) {
+            Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(plugins) { plugin ->
-                    ElevatedCard(
+                    Card(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        onClick = { /* maybe show plugin details */ }
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        shape = MaterialTheme.shapes.large,
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onBackground
+                        ),
+                        onClick = { /* navigate to plugin details or perform action */ }
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -244,38 +253,63 @@ fun PluginScreenMainContent(
                                 Text(
                                     text = plugin.pluginName,
                                     style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
-                                IconButton(onClick = {
-                                    onPluginDeleted(plugin)
-                                }) {
+                                IconButton(onClick = { onPluginDeleted(plugin) }) {
                                     Icon(
                                         imageVector = Icons.TwoTone.Delete,
                                         contentDescription = "Delete Plugin",
-                                        tint = MaterialTheme.colorScheme.error
+                                        tint = MaterialTheme.colorScheme.onError
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "Permissions: ${plugin.pluginPermissions.joinToString()}",
+                                text = "Permissions:",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontFamily = FontFamily.Serif,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = ">> ${plugin.pluginPermissions.joinToString(", ")}",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSecondary,
+                                modifier = Modifier.padding(start = 8.dp, top = 2.dp)
                             )
 
-                            Text(
-                                text = "Main: ${plugin.mainClass}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "Plugin API: ${plugin.pluginApi}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(top = 4.dp)
+                                text = "Main Class:",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontFamily = FontFamily.Serif,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = ">> ${plugin.mainClass}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondary,
+                                modifier = Modifier.padding(start = 8.dp, top = 2.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "Plugin API:${plugin.pluginApi}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.background,
+                                        shape = MaterialTheme.shapes.large
+                                    )
+                                    .padding(horizontal = 14.dp, vertical = 8.dp)
                             )
                         }
                     }

@@ -44,28 +44,46 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
+import com.dark.neuroverse.activities.PluginManagerActivity
 import com.dark.neuroverse.data.fullTermsText
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.utils.UserPrefs
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(paddingValues: PaddingValues) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     var showTerms by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
     var acceptChecked by remember { mutableStateOf(false) }
 
+    var hasAudioPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val isSetupComplete = termsAccepted && hasAudioPermission
+
     LaunchedEffect(Unit) {
-        UserPrefs.isTermsAccepted(context).collect { accepted ->
-            termsAccepted = accepted
-            if (!accepted) showTerms = true
+        val accepted = UserPrefs.isTermsAccepted(context).first()
+        termsAccepted = accepted
+        if (!accepted) {
+            showTerms = true
         }
     }
 
     val audioPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
+            hasAudioPermission = isGranted
             if (isGranted) {
                 val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
                 context.startActivity(intent)
@@ -83,9 +101,15 @@ fun HomeScreen(paddingValues: PaddingValues) {
         ) {
             ElevatedButton(
                 onClick = {
-                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    if (isSetupComplete) {
+                        Intent(context, PluginManagerActivity::class.java).apply {
+                            context.startActivity(this)
+                        }
+                    } else {
+                        audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
                 },
-                enabled = termsAccepted,
+                enabled = true,
                 colors = ButtonDefaults.elevatedButtonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -93,7 +117,7 @@ fun HomeScreen(paddingValues: PaddingValues) {
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
                 Text(
-                    "Setup NeuroV",
+                    if (isSetupComplete) "Open Plugin Manager" else "Setup NeuroV",
                     style = MaterialTheme.typography.titleMedium,
                     fontFamily = FontFamily.Monospace
                 )
@@ -116,8 +140,6 @@ fun HomeScreen(paddingValues: PaddingValues) {
         }
 
         if (showTerms) {
-            val scope = rememberCoroutineScope()
-
             AlertDialog(
                 onDismissRequest = { },
                 icon = {
@@ -177,10 +199,10 @@ fun HomeScreen(paddingValues: PaddingValues) {
                     TextButton(
                         onClick = {
                             if (acceptChecked) {
-                                showTerms = false
-                                termsAccepted = true
                                 scope.launch {
                                     UserPrefs.setTermsAccepted(context, true)
+                                    termsAccepted = true
+                                    showTerms = false
                                 }
                             }
                         },

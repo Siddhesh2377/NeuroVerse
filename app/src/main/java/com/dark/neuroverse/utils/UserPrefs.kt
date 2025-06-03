@@ -12,7 +12,7 @@ object UserPrefs {
     private val TERMS_ACCEPTED_KEY = booleanPreferencesKey("terms_accepted")
 
     fun isTermsAccepted(context: Context): Flow<Boolean> {
-        return context.dataStore.data.map { it[TERMS_ACCEPTED_KEY] ?: false }
+        return context.dataStore.data.map { it[TERMS_ACCEPTED_KEY] == true }
     }
 
     suspend fun setTermsAccepted(context: Context, accepted: Boolean) {
