@@ -21,15 +21,15 @@ android {
         versionName = "0.1-beta"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndkVersion = "29.0.13113456"
-
         val localPropertiesFile = rootProject.file("local.properties")
+
         val apiKey = if (localPropertiesFile.exists()) {
             val localProps = Properties().apply {
                 load(FileInputStream(localPropertiesFile))
             }
-            localProps.getProperty("API_KEY") ?: ""
+            localProps.getProperty("API_KEY") ?: "sample_dev_key"
         } else {
-            System.getenv("API_KEY") ?: "/"sample_dev_key"/"
+            System.getenv("API_KEY") ?: "sample_dev_key"
         }
 
         buildConfigField("String", "API_KEY", apiKey)
@@ -67,6 +67,13 @@ android {
         compose = true
         buildConfig = true
     }
+
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas/app")
+        }
+    }
+
 }
 
 dependencies {
