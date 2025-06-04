@@ -8,6 +8,7 @@ data class InstalledPluginModel(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val pluginName: String,
+    val pluginDescription: String,
     val pluginPermissions: List<String>,
     val manifestFile: String,
     var mainClass: String,

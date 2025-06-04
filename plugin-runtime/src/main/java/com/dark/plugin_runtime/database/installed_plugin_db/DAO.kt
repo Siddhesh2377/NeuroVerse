@@ -20,6 +20,9 @@ interface PluginDao{
     @Query("SELECT mainClass FROM InstalledPluginModel WHERE pluginName = :name")
     suspend fun getMainClassByName(name: String): String
 
+    @Query("SELECT pluginDescription FROM InstalledPluginModel WHERE pluginName = :name")
+    suspend fun getPluginDescriptionByName(name: String): String
+
     @Query("DELETE FROM InstalledPluginModel WHERE id = :id")
     suspend fun deletePlugin(id: Int)
 }

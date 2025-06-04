@@ -4,8 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import com.dark.plugin_api.info.Plugin
 import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
@@ -74,16 +72,19 @@ class PluginManager(private val context: Context) {
         Log.d(TAG, "✅ Found manifest.json at: ${manifestFilePath.absolutePath}")
         val manifest = JSONObject(manifestFilePath.readText())
         val pluginName = manifest.getString("name")
+        val pluginDis = manifest.getString("description")
         val mainClassName = manifest.getString("main")
+        val pluginApiVersion = manifest.getString("plugin-api-version")
         val permissions = (0 until manifest.getJSONArray("permissions")
             .length()).map { manifest.getJSONArray("permissions").getString(it) }
         return InstalledPluginModel(
             pluginName = pluginName,
+            pluginDescription = pluginDis,
             pluginPermissions = permissions,
             mainClass = mainClassName,
             manifestFile = manifestFilePath.path,
             pluginPath = pluginFolder.path,
-            pluginApi = "1.0.0"
+            pluginApi = pluginApiVersion
         )
     }
 
@@ -115,7 +116,7 @@ class PluginManager(private val context: Context) {
     }
 
     fun runPlugin(pluginName: String) {
-        var db =  PluginInstalledDatabase.getInstance(context)
+        var db = PluginInstalledDatabase.getInstance(context)
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             val pluginFolder = db.pluginDao().getPluginFolderByName(pluginName)

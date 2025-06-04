@@ -20,7 +20,5 @@ class PluginManagerActivity : ComponentActivity() {
                 }
             }
         }
-
     }
-
 }

@@ -6,11 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Scaffold
 import com.dark.neuroverse.compose.screens.HomeScreen
+import com.dark.neuroverse.neurov.mcp.ai.PluginRouter
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PluginRouter.init(applicationContext)
         enableEdgeToEdge()
         setContent {
             NeuroVerseTheme {
