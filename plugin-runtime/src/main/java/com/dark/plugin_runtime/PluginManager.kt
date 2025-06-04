@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import com.dark.plugin_api.info.Plugin
 import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
+import com.dark.plugin_runtime.engine.PluginExecutionManager
 import dalvik.system.DexClassLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -144,6 +145,8 @@ class PluginManager(private val context: Context) {
                 throw IllegalStateException("❌ $mainClass does not implement Plugin interface")
             }
             Log.i(TAG, "✅ Loaded plugin class: ${instance.getName()}")
+
+            PluginExecutionManager.launchPlugin(instance)
         }
     }
 

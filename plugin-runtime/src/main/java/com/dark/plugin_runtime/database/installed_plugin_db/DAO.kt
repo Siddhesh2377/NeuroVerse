@@ -15,7 +15,7 @@ interface PluginDao{
     suspend fun getAllPlugins(): List<InstalledPluginModel>
 
     @Query("SELECT pluginPath FROM InstalledPluginModel WHERE pluginName = :name")
-    suspend fun getPluginFolderByName(name: String): File
+    suspend fun getPluginFolderByName(name: String): String
 
     @Query("SELECT mainClass FROM InstalledPluginModel WHERE pluginName = :name")
     suspend fun getMainClassByName(name: String): String
