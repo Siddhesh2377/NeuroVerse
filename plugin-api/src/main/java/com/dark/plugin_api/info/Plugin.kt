@@ -2,9 +2,19 @@ package com.dark.plugin_api.info
 
 import android.content.Context
 
-interface Plugin {
-    val context: Context
-    fun getName(): String
-    fun onStart()
-    fun onStop()
+class Plugin() {
+    val context: Context? = null
+    fun getName(): String{
+        return "none"
+    }
+    fun onStart() {
+
+    }
+//
+//    fun (){
+//
+//    }
+    fun onStop(){
+
+    }
 }

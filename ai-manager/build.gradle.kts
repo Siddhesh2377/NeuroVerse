@@ -1,11 +1,10 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.kapt)
 }
 
 android {
-    namespace = "com.dark.plugin_runtime"
+    namespace = "com.dark.ai_manager"
     compileSdk = 35
 
     defaultConfig {
@@ -31,26 +30,16 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-
-    kapt {
-        arguments {
-            arg("room.schemaLocation", "$projectDir/schemas/plugin")
-        }
-    }
-
 }
 
 dependencies {
-
-    implementation(project(":plugin-api"))
-
-    //DATABASE
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.runtime.android)
-    //noinspection KaptUsageInsteadOfKsp
-    kapt(libs.androidx.room.compiler)
+    //API
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

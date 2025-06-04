@@ -28,8 +28,10 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Backpack
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,6 +41,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,8 +59,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.dark.neuroverse.ui.theme.NeuroVerseTheme
-import com.dark.neuroverse.ui.theme.SoftWhite
 import com.dark.neuroverse.viewModel.PluginScreenViewModel
 import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
@@ -205,7 +207,6 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
         }
     }
 
-
 }
 
 @Composable
@@ -222,9 +223,11 @@ fun PluginScreenMainContent(
             Text("No Plugins Here...")
         }
     } else {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 16.dp)
+        ) {
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
                 modifier = Modifier
@@ -233,6 +236,7 @@ fun PluginScreenMainContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(plugins) { plugin ->
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -299,18 +303,49 @@ fun PluginScreenMainContent(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            Text(
-                                text = "Plugin API:${plugin.pluginApi}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier
-                                    .padding(top = 8.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.background,
-                                        shape = MaterialTheme.shapes.large
+                            Row {
+                                Text(
+                                    text = "Plugin API:${plugin.pluginApi}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier
+                                        .padding(top = 8.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.background,
+                                            shape = MaterialTheme.shapes.large
+                                        )
+                                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                                )
+
+                                Spacer(Modifier.weight(1f))
+                                val context = LocalContext.current
+                                var isChecked = remember { mutableStateOf(plugin.isEnabled) }
+
+                                Switch(
+                                    isChecked.value, onCheckedChange = {
+                                        isChecked.value = it
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            PluginInstalledDatabase.getInstance(context)
+                                                .pluginDao()
+                                                .updatePluginEnabled(plugin.id, it)
+                                        }
+                                    },
+                                    thumbContent = {
+                                        Icon(
+                                            imageVector = if (isChecked.value) Icons.Filled.Check else Icons.Outlined.Clear,
+                                            contentDescription = "Refresh",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }, colors = SwitchDefaults.colors(
+                                        checkedThumbColor = MaterialTheme.colorScheme.onBackground,
+                                        uncheckedThumbColor = MaterialTheme.colorScheme.onBackground,
+                                        checkedTrackColor = MaterialTheme.colorScheme.background,
+                                        uncheckedTrackColor = MaterialTheme.colorScheme.background,
+                                        uncheckedBorderColor = Color.Transparent
                                     )
-                                    .padding(horizontal = 14.dp, vertical = 8.dp)
-                            )
+                                )
+                            }
+
                         }
                     }
                 }

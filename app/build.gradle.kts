@@ -79,6 +79,7 @@ android {
 dependencies {
 
     //PROJECTS
+    implementation(project(":ai-manager"))
     implementation(project(":plugin-api"))
     implementation(project(":plugin-runtime"))
 
@@ -89,12 +90,12 @@ dependencies {
 
     //UTILS
     implementation(libs.google.gson)
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation(libs.androidx.datastore.preferences)
 
     //API
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
 
     //KTX
     implementation(libs.androidx.lifecycle.runtime.ktx)

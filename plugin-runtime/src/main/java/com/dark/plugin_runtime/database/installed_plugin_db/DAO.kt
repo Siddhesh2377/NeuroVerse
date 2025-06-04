@@ -23,6 +23,9 @@ interface PluginDao{
     @Query("SELECT pluginDescription FROM InstalledPluginModel WHERE pluginName = :name")
     suspend fun getPluginDescriptionByName(name: String): String
 
+    @Query("UPDATE InstalledPluginModel SET isEnabled = :enabled WHERE id = :pluginId")
+    suspend fun updatePluginEnabled(pluginId: Int, enabled: Boolean)
+
     @Query("DELETE FROM InstalledPluginModel WHERE id = :id")
     suspend fun deletePlugin(id: Int)
 }

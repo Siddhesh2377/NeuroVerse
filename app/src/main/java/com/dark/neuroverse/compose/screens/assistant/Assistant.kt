@@ -38,9 +38,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.dark.neuroverse.compose.components.GlitchTypingText
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter.process
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.ui.theme.White
+import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
@@ -51,7 +55,7 @@ fun AssistantScreen(
 ) {
     LocalContext.current
 
-    var userPrompt by remember { mutableStateOf("Open a Android app") }
+    var userPrompt by remember { mutableStateOf("Can You list The Installed Android apps?") }
     var displayMessage by remember { mutableStateOf("Hello User, I am here to help you navigate your phone with ease") }
     var isProcessing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -129,11 +133,9 @@ fun AssistantScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Text(
-                        text = displayMessage,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontFamily = FontFamily.Serif,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    GlitchTypingText(
+                        finalText = displayMessage,
+                        delayPerChar = 10L,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
@@ -145,9 +147,9 @@ fun AssistantScreen(
                             if (!isProcessing) {
                                 isProcessing = true
                                 scope.launch {
-                                    process(userPrompt){ response ->
-                                        displayMessage = response
-                                    }
+                                    var response = process(userPrompt)
+                                    Log.e("Assistant Screen", "Router Response is >> ${response.reason}")
+                                    displayMessage = response.reason
                                     isProcessing = false
                                 }
                             }
