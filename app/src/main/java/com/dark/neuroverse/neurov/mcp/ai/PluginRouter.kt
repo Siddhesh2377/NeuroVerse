@@ -1,6 +1,7 @@
 package com.dark.neuroverse.neurov.mcp.ai
 
 import android.content.Context
+import android.util.Log
 import com.dark.neuroverse.BuildConfig
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import com.google.gson.JsonParser
@@ -57,18 +58,56 @@ object PluginRouter {
     ): String = suspendCancellableCoroutine { cont ->
         val jsonBody = JSONObject().apply {
             put("model", "mistralai/mistral-7b-instruct")
-            put("stream", true)
+
+            // stream removed
+            // put("stream", true)  ← Removed
+
             put("messages", JSONArray().apply {
                 put(JSONObject().apply {
                     put("role", "system")
-                    put("content", "You are an AI assistant. Respond concisely and help the user interact with apps.")
+                    put("content", """
+                        You're a plugin router. Always return a JSON like {\"code\": int, \"plugin_name\": string|null, \"reason\": string} based on user's request and available plugins.
+                You will be given a list of plugin names and descriptions.
+                Match the user's request to one of the plugins.
+                If a plugin matches, respond with code=1, plugin_name, and a helpful message.
+                If none match, respond with code=0 and plugin_name=null.
+                Only return a JSON object in the specified format.
+            """.trimIndent())
                 })
                 put(JSONObject().apply {
                     put("role", "user")
                     put("content", prompt)
                 })
             })
+
+            // Structured output format
+            put("response_format", JSONObject().apply {
+                put("type", "json_schema")
+                put("json_schema", JSONObject().apply {
+                    put("type", "object")
+                    put("properties", JSONObject().apply {
+                        put("code", JSONObject().apply {
+                            put("type", "integer")
+                            put("description", "1 if plugin matched, 0 otherwise")
+                        })
+                        put("plugin_name", JSONObject().apply {
+                            put("type", "string")
+                            put("description", "Name of the matched plugin, or null if no match")
+                        })
+                        put("message", JSONObject().apply {
+                            put("type", "string")
+                            put("description", "Explanation of the routing decision")
+                        })
+                    })
+                    put("required", JSONArray().apply {
+                        put("code")
+                        put("plugin_name")
+                        put("message")
+                    })
+                })
+            })
         }.toString()
+
 
         val requestBody = jsonBody.toRequestBody("application/json".toMediaTypeOrNull())
 
@@ -91,25 +130,21 @@ object PluginRouter {
                     return
                 }
 
-                val builder = StringBuilder()
-                response.body?.charStream()?.forEachLine { line ->
-                    if (line.startsWith("data: ")) {
-                        val jsonLine = line.removePrefix("data: ").trim()
-                        if (jsonLine == "[DONE]") return@forEachLine
-                        try {
-                            val delta = JsonParser.parseString(jsonLine)
-                                .asJsonObject["choices"]?.asJsonArray?.get(0)?.asJsonObject
-                                ?.get("delta")?.asJsonObject
+                val bodyString = response.body?.string() ?: ""
+                Log.d("PluginRouter", "Response: $bodyString")
 
-                            val content = delta?.get("content")?.asString
-                            if (content != null) {
-                                builder.append(content)
-                                onResult(builder.toString())
-                            }
-                        } catch (_: Exception) {}
-                    }
-                }
-                cont.resume(builder.toString(), null)
+                val json = JSONObject(bodyString)
+                val choices = json.getJSONArray("choices")
+                val message = choices.getJSONObject(0).getJSONObject("message")
+                val content = message.getString("content")
+                val contentData = JSONObject(content) // content is from message.content
+                val code = contentData.optInt("code")
+                val pluginName = contentData.optString("plugin_name")
+                val reason = contentData.optString("reason")
+
+                Log.d("PluginRouter", "AI Response: $content")
+
+                cont.resume(reason, null)
             }
         })
     }
