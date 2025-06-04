@@ -3,10 +3,12 @@ package com.dark.neuroverse.neurov.mcp.ai
 import android.content.Context
 import android.util.Log
 import com.dark.ai_manager.ai.api_calls.AiRouter
+import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONArray
@@ -15,14 +17,18 @@ import org.json.JSONObject
 object PluginRouter {
     private lateinit var db: PluginInstalledDatabase
     private lateinit var pluginDescriptions: MutableList<Pair<String, String>>
+    private lateinit var pluginManager: PluginManager
+
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(job + Dispatchers.IO)
 
     fun init(context: Context) {
         db = PluginInstalledDatabase.getInstance(context)
-        CoroutineScope(Dispatchers.IO).launch {
+        pluginManager = PluginManager(context.applicationContext)
+        scope.launch {
             refreshDescriptionList()
         }
     }
-
 
     suspend fun refreshDescriptionList() {
         val list = getDb().pluginDao().getAllPlugins()
@@ -98,6 +104,16 @@ object PluginRouter {
 
                 1 -> {
                     val data = phraseContent(response)
+
+                    if (data.code != 0){
+                        pluginManager.runPlugin(data.pluginName.toString()){ it->
+                            val requestBody = AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
+                            AiRouter.processRequest(requestBody) { code, response ->
+                                it.onAiResponse(JSONObject(response))
+                            }
+                        }
+                    }
+
                     cont.resume(data, null)
                 }
             }

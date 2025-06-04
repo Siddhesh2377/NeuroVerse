@@ -148,6 +148,7 @@ fun AssistantScreen(
                                 isProcessing = true
                                 scope.launch {
                                     var response = process(userPrompt)
+
                                     Log.e("Assistant Screen", "Router Response is >> ${response.reason}")
                                     displayMessage = response.reason
                                     isProcessing = false

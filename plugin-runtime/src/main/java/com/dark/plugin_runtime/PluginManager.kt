@@ -115,7 +115,7 @@ class PluginManager(private val context: Context) {
         }
     }
 
-    fun runPlugin(pluginName: String) {
+    fun runPlugin(pluginName: String, onResult: (Plugin) -> Unit) {
         var db = PluginInstalledDatabase.getInstance(context)
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
@@ -146,7 +146,7 @@ class PluginManager(private val context: Context) {
                 throw IllegalStateException("❌ $mainClass does not implement Plugin interface")
             }
             Log.i(TAG, "✅ Loaded plugin class: ${instance.getName()}")
-
+            onResult(instance)
             PluginExecutionManager.launchPlugin(instance)
         }
     }
