@@ -1,39 +1,53 @@
 # NeuroVerse
 
-**NeuroVerse** is a futuristic AI-powered Android assistant that gives you full control of your phone using natural language and voice commands.
+**NeuroVerse** is a futuristic AI-powered Android assistant that gives you full control of your phone using natural language processing.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Built%20With-Kotlin%20%7C%20Jetpack%20Compose-blue" />
-  <img src="https://img.shields.io/badge/AI-Gemini%20API%20%7C%20Vosk-red" />
+  <img src="https://img.shields.io/badge/Built%20With-Kotlin%20%7C%20Jetpack%20Compose-purple" />
+  <img src="https://img.shields.io/badge/AI-OpenRouter%20API-black" />
 </p>
 
 ---
 
-## 🚀 Features
+## Features
 
-- 🎤 **Voice Assistant**: Real-time voice recognition using [Vosk](https://alphacephei.com/vosk/)
-- 🤖 **Natural Language Understanding**: Gemini-powered prompt parsing to JSON commands
-- 📱 **Full App Control**: Open apps, automate actions, and navigate via voice
-- 📦 **On-device Processing**: Works offline (speech) with minimal API calls
-- 🧠 **Smart UI**: Built with Jetpack Compose and Material 3
-- 🔐 **Privacy-First**: Local speech recognition and no cloud logging
+* **Natural Language Understanding** – OpenRouter-powered prompt parsing into structured JSON commands.
+* **Full App Control** – Automate and trigger system actions using downloadable modular plugins.
+* **Smart UI** – Built with Jetpack Compose and Material 3.
+* **Dynamic Plugin System** – Install new capabilities on the fly (in development).
 
 ---
 
-## 📸 Screenshots
+## Plugin System (Under Development)
 
-<img src="https://github.com/user-attachments/assets/1eda42a8-8e76-4401-b6fc-85cf24bf8a31" width="250"/>
+NeuroVerse introduces a **dynamic plugin framework** that allows third-party developers to create and load functionality as modular APK plugins.
 
+* Plugins can respond to voice commands or AI-generated JSON.
+* They run in a sandboxed environment with controlled permissions.
+* Easily updatable and installable from a Firebase-powered Plugin Market screen.
 
+**What can be built with plugins?**
+
+* App launchers, automation triggers, content fetchers, accessibility-based actions, custom AI interpreters, and more.
 
 ---
 
-## 🛠️ Built With
+## Screenshots
 
-- **Kotlin** + **Jetpack Compose**
-- **Google Gemini API** – Prompt-to-Command AI
-- **Vosk** – Offline Speech Recognition (Indian English model)
-- **Accessibility Services** – To control apps and navigation
+> *Some Experimental Previews*
+
+---
+
+## Built With
+
+* Kotlin + Jetpack Compose
+* Firebase Realtime Database + Storage
+* RoomDB + DataStore
+* OpenRouter API ([openrouter.ai](https://openrouter.ai/))
+* ONNX Runtime (planned)
+* Accessibility Services
+* Coroutine + Flow
+* Compose Navigation + State Management
 
 ---
 
@@ -41,36 +55,43 @@
 
 ```bash
 # Clone the repo
-https://github.com/yourusername/NeuroVerse.git
+git clone https://github.com/yourusername/NeuroVerse.git
 
 # Open in Android Studio
 # Build & run on Android 11+ device
 ```
 
 ### Note
-Add the Vosk model (`model-en-in`) to `src/main/assets/model-en-in`.
+
+Some advanced features (like automation and plugin permissions) may require enabling accessibility services and allowing unknown sources for plugin APKs.
 
 ---
 
 ## 🧠 Example Prompts
 
-- "Open WhatsApp"
-- "Play music in YouTube"
-- "Search 'AI news' in Chrome"
+* "Open WhatsApp"
+* "Turn on WiFi"
+* "List installed apps"
+* "Record a voice note and email it"
 
-The assistant will interpret your query and generate structured JSON to take actions accordingly.
+NeuroVerse will parse these prompts, convert them into structured JSON, and invoke the appropriate plugins to execute them.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Feel free to open issues or PRs.
+Contributions are welcome! If you're interested in plugin development, core functionality, or UI improvements:
+
+* Fork the repo
+* Follow the code style and structure
+* Document your changes properly
+* Submit a Pull Request
 
 ---
 
 ## 📄 License
-[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
 **Licensed under the Creative Commons Attribution-NonCommercial 4.0**
 
@@ -102,10 +123,19 @@ Please contact: siddheshsonar2377@gmail.com
 Full license details: https://creativecommons.org/licenses/by-nc/4.0/
 ```
 
-
 ---
 
 ## ✨ Author
 
-**[Siddhesh Sonar : DARK ](https://github.com/Siddhesh2377)**  
+**[Siddhesh Sonar (DARK)](https://github.com/Siddhesh2377)**
 *Android Developer | AI Enthusiast | Open Source Contributor*
+
+---
+
+## 🙏 Special Thanks
+
+* [OpenRouter.ai](https://openrouter.ai) – For powering natural language to structured command conversion.
+* JetBrains – For Kotlin and tooling.
+* Android Open Source Project – For making custom AI automation possible.
+* Firebase – For realtime syncing and storage.
+* GitHub community – For inspiring open-source contributions.
