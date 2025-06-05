@@ -2,14 +2,15 @@ package com.dark.plugin_runtime.database.installed_plugin_db
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import java.io.File
 
 @Dao
 interface PluginDao{
 
-    @Insert
-    suspend fun insertPlugin(plugin: InstalledPluginModel)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPlugin(plugin: InstalledPluginModel): Long
 
     @Query("SELECT * FROM InstalledPluginModel")
     suspend fun getAllPlugins(): List<InstalledPluginModel>

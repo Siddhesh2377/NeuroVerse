@@ -41,6 +41,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -50,6 +52,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +82,8 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
     var isImportingPlugin by remember { mutableStateOf(false) }
     val plugins by viewModel.pluginsList.collectAsState()
     var pluginManager = PluginManager(context)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
 
     val filePickerLauncher = rememberLauncherForActivityResult(
@@ -94,10 +99,25 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                 // 🔥 Trigger plugin install
                 pluginManager.installPlugin(it) { pluginData ->
                     Log.d("PluginInstall", "✅ Installed to ${pluginData.manifestFile}")
+                    // inside your callback from pluginManager.installPlugin(…)
                     CoroutineScope(Dispatchers.IO).launch {
-                        db.pluginDao().insertPlugin(pluginData)
+                        val rowId = db.pluginDao().insertPlugin(pluginData)
+                        if (rowId == -1L) {
+                            Log.d("PluginInstall", "⚠️ Plugin “${pluginData.pluginName}” already installed; skipping.")
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "⚠️ Plugin “${pluginData.pluginName}” already installed; skipping.",
+                                    actionLabel = "Dismiss",
+                                    duration = SnackbarDuration.Long
+                                )
+                            }
+
+                        } else {
+                            Log.d("PluginInstall", "✅ Inserted “${pluginData.pluginName}” (rowId=$rowId).")
+                        }
                         viewModel.refreshPlugins(db)
                     }
+
                 }
             }
         }
@@ -345,7 +365,6 @@ fun PluginScreenMainContent(
                                     )
                                 )
                             }
-
                         }
                     }
                 }

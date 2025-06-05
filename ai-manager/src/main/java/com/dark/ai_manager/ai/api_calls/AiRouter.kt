@@ -39,7 +39,7 @@ object AiRouter {
      * @return A ready-to-send OkHttp RequestBody.
      */
     fun submitStructuredRequest(jsonObject: JSONObject): RequestBody {
-        jsonObject.put("model", Models.Mistral7B.modelName)
+        jsonObject.put("model", Models.GEMMA327B.modelName)
         val requestBody = jsonObject.toString().toRequestBody("application/json".toMediaTypeOrNull())
         return requestBody
     }
@@ -55,6 +55,7 @@ object AiRouter {
             .url("https://openrouter.ai/api/v1/chat/completions")
             .addHeader("Authorization", "Bearer $apiKey")
             .addHeader("HTTP-Referer", "https://github.com/siddhesh2377/NeuroVerse")
+            .addHeader("X-Title", "NeuroV: Automation App")
             .addHeader("Content-Type", "application/json")
             .post(requestBody)
             .build()
@@ -70,6 +71,12 @@ object AiRouter {
      *  - `0` and error message on failure
      */
     fun processRequest(requestBody: RequestBody, onResponse: (Int, String) -> Unit) {
+        val request = requestBuilder(requestBody)
+        Log.d("AiRouter", "POST → ${request.url}")
+        for ((name, value) in request.headers) {
+            Log.d("AiRouter", "Header: $name → $value")
+        }
+
         OkHttpClient().newCall(requestBuilder(requestBody)).enqueue(object : okhttp3.Callback {
 
             override fun onFailure(call: okhttp3.Call, e: IOException) {

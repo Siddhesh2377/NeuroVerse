@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [InstalledPluginModel::class], version = 1, exportSchema = true)
+@Database(entities = [InstalledPluginModel::class], version = 2, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class PluginInstalledDatabase : RoomDatabase() {
     abstract fun pluginDao(): PluginDao
@@ -20,7 +20,7 @@ abstract class PluginInstalledDatabase : RoomDatabase() {
                     context.applicationContext,
                     PluginInstalledDatabase::class.java,
                     "plugin_database.db"
-                ).build().also { INSTANCE = it }
+                ).fallbackToDestructiveMigration(false).build().also { INSTANCE = it }
             }
         }
     }

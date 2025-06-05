@@ -1,5 +1,7 @@
 package com.dark.neuroverse.services
 
+import android.app.assist.AssistContent
+import android.app.assist.AssistStructure
 import android.content.Context
 import android.os.Bundle
 import android.service.voice.VoiceInteractionSession
@@ -107,6 +109,17 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
         composeRoot?.removeAllViews()
         composeRoot = null
         super.onDestroy()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onHandleAssist(
+        data: Bundle?,
+        structure: AssistStructure?,
+        content: AssistContent?
+    ) {
+        // Do NOT call super.onHandleAssist(…)—that is what triggers the HTML dump.
+        // Just swallow it:
+        Log.d(TAG, "onHandleAssist (ignored).")
     }
 
     companion object {

@@ -6,8 +6,7 @@
         android:name="android.permission.BIND_VOICE_INTERACTION"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.INTERNET"/>
 
 
     <queries>
@@ -43,6 +42,12 @@
             android:name=".activities.PluginManagerActivity"
             android:exported="true"
             android:theme="@style/Theme.NeuroVerse"/>
+
+<!--        <service-->
+<!--            android:name=".services.PluginSandboxService"-->
+<!--            android:process=":sandbox_plugin"-->
+<!--            android:permission="com.dark.neurov.SAFE_SANDBOX" />-->
+
 
 
         <service

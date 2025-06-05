@@ -26,5 +26,4 @@ class PluginScreenViewModel : ViewModel() {
             _pluginsList.value = list
         }
     }
-
 }

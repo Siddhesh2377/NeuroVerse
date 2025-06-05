@@ -33,13 +33,7 @@ fun SnackbarDemoScreen() {
         ) {
             ElevatedButton(
                 onClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Microphone permission granted!",
-                            actionLabel = "Dismiss",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
+
                 }
             ) {
                 Text("Show Snackbar")
