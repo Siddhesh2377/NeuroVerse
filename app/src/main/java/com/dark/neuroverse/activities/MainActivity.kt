@@ -24,7 +24,6 @@ import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
-import com.google.firebase.firestore.ktx.firestore
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

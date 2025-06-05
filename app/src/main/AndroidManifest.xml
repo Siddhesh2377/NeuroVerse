@@ -6,7 +6,7 @@
         android:name="android.permission.BIND_VOICE_INTERACTION"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
 
     <queries>
@@ -41,13 +41,12 @@
         <activity
             android:name=".activities.PluginManagerActivity"
             android:exported="true"
-            android:theme="@style/Theme.NeuroVerse"/>
+            android:theme="@style/Theme.NeuroVerse" />
 
-<!--        <service-->
-<!--            android:name=".services.PluginSandboxService"-->
-<!--            android:process=":sandbox_plugin"-->
-<!--            android:permission="com.dark.neurov.SAFE_SANDBOX" />-->
-
+        <!--        <service-->
+        <!--            android:name=".services.PluginSandboxService"-->
+        <!--            android:process=":sandbox_plugin"-->
+        <!--            android:permission="com.dark.neurov.SAFE_SANDBOX" />-->
 
 
         <service
@@ -66,18 +65,18 @@
         </service>
 
 
-<!--        <service-->
-<!--            android:name=".services.NeuroVAccessibilityService"-->
-<!--            android:exported="true"-->
-<!--            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.accessibilityservice.AccessibilityService" />-->
-<!--            </intent-filter>-->
+        <!--        <service-->
+        <!--            android:name=".services.NeuroVAccessibilityService"-->
+        <!--            android:exported="true"-->
+        <!--            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">-->
+        <!--            <intent-filter>-->
+        <!--                <action android:name="android.accessibilityservice.AccessibilityService" />-->
+        <!--            </intent-filter>-->
 
-<!--            <meta-data-->
-<!--                android:name="android.accessibilityservice"-->
-<!--                android:resource="@xml/accessibility_service_config" />-->
-<!--        </service>-->
+        <!--            <meta-data-->
+        <!--                android:name="android.accessibilityservice"-->
+        <!--                android:resource="@xml/accessibility_service_config" />-->
+        <!--        </service>-->
 
         <service
             android:name=".services.NeuroVoiceInteractionSessionService"

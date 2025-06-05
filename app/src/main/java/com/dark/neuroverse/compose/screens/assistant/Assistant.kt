@@ -42,9 +42,6 @@ import com.dark.neuroverse.compose.components.GlitchTypingText
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter.process
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.ui.theme.White
-import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
@@ -149,7 +146,10 @@ fun AssistantScreen(
                                 scope.launch {
                                     var response = process(userPrompt)
 
-                                    Log.e("Assistant Screen", "Router Response is >> ${response.reason}")
+                                    Log.e(
+                                        "Assistant Screen",
+                                        "Router Response is >> ${response.reason}"
+                                    )
                                     displayMessage = response.reason
                                     isProcessing = false
                                 }

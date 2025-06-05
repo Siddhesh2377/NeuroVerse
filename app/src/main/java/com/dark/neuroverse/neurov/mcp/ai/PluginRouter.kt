@@ -105,9 +105,10 @@ object PluginRouter {
                 1 -> {
                     val data = phraseContent(response)
 
-                    if (data.code != 0){
-                        pluginManager.runPlugin(data.pluginName.toString()){ it->
-                            val requestBody = AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
+                    if (data.code != 0) {
+                        pluginManager.runPlugin(data.pluginName.toString()) { it ->
+                            val requestBody =
+                                AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
                             AiRouter.processRequest(requestBody) { code, response ->
                                 it.onAiResponse(JSONObject(response))
                             }
