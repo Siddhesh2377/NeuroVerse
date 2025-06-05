@@ -78,9 +78,9 @@ Some advanced features (like automation and plugin permissions) may require enab
 ## 🧠 Example Prompts
 
 * "Open WhatsApp"
-* "Turn on WiFi"
-* "List installed apps"
-* "Record a voice note and email it"
+* "Turn on WiFi" **(!!..Under Development..!!)**
+* "List installed apps" 
+* "Record a voice note and email it" **(!!..Under Development..!!)**
 
 NeuroVerse will parse these prompts, convert them into structured JSON, and invoke the appropriate plugins to execute them.
 
