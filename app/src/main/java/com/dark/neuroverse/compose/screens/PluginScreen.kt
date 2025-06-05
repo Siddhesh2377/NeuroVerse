@@ -3,9 +3,11 @@ package com.dark.neuroverse.compose.screens
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,19 +26,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Backpack
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
@@ -50,18 +59,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.dark.neuroverse.compose.components.RichText
+import com.dark.neuroverse.compose.components.SingleChoiceSegmentedButton
+import com.dark.neuroverse.data.backend.downloadAndInstall
+import com.dark.neuroverse.data.backend.fetchAllPlugins
+import com.dark.neuroverse.data.models.PluginLink
 import com.dark.neuroverse.viewModel.PluginScreenViewModel
 import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
@@ -85,6 +102,7 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    var currentScreen by remember { mutableStateOf("Installed") }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -103,7 +121,10 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                     CoroutineScope(Dispatchers.IO).launch {
                         val rowId = db.pluginDao().insertPlugin(pluginData)
                         if (rowId == -1L) {
-                            Log.d("PluginInstall", "⚠️ Plugin “${pluginData.pluginName}” already installed; skipping.")
+                            Log.d(
+                                "PluginInstall",
+                                "⚠️ Plugin “${pluginData.pluginName}” already installed; skipping."
+                            )
                             scope.launch {
                                 snackbarHostState.showSnackbar(
                                     message = "⚠️ Plugin “${pluginData.pluginName}” already installed; skipping.",
@@ -113,7 +134,10 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                             }
 
                         } else {
-                            Log.d("PluginInstall", "✅ Inserted “${pluginData.pluginName}” (rowId=$rowId).")
+                            Log.d(
+                                "PluginInstall",
+                                "✅ Inserted “${pluginData.pluginName}” (rowId=$rowId)."
+                            )
                         }
                         viewModel.refreshPlugins(db)
                     }
@@ -134,7 +158,6 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
         viewModel.refreshPlugins(db)
     }
 
-
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -146,12 +169,24 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                "Plugin Screen",
-                style = MaterialTheme.typography.headlineLarge,
-                fontFamily = FontFamily.Serif,
-                fontWeight = FontWeight.Medium
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "Plugin Screen",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Crossfade(currentScreen) {
+                    Text(
+                        "$it Plugins",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontFamily = FontFamily.Serif
+                    )
+                }
+
+            }
+
 
             Spacer(Modifier.weight(1f))
 
@@ -183,16 +218,65 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                     }
 
                     false -> {
-                        PluginScreenMainContent(plugins, onPluginDeleted = { plugin ->
-                            pluginManager.unInstallPlugin(plugin.pluginPath) { isDeleted ->
-                                if (isDeleted) {
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        db.pluginDao().deletePlugin(plugin.id)
-                                        viewModel.refreshPlugins(db)
+                        AnimatedContent(currentScreen) {
+                            when (it) {
+                                "Installed" -> InstalledPluginScreen(
+                                    plugins,
+                                    onPluginDeleted = { plugin ->
+                                        pluginManager.unInstallPlugin(plugin.pluginPath) { isDeleted ->
+                                            if (isDeleted) {
+                                                CoroutineScope(Dispatchers.IO).launch {
+                                                    db.pluginDao().deletePlugin(plugin.id)
+                                                    viewModel.refreshPlugins(db)
+                                                }
+                                            }
+                                        }
+                                    })
+
+                                "Market" -> {
+                                    val pluginList = remember { mutableStateListOf<PluginLink>() }
+
+                                    // Fetch only once (on first composition)
+                                    LaunchedEffect(Unit) {
+                                        fetchAllPlugins { result ->
+                                            pluginList.clear()
+                                            pluginList.addAll(result)
+                                        }
+                                    }
+
+                                    MarketPluginScreen(
+                                        plugins = pluginList,
+                                        db = db
+                                    ) { selectedPlugin ->
+                                        downloadAndInstall(
+                                            plugin = selectedPlugin,
+                                            context = context,
+                                            db = db,
+                                            onSuccess = {
+                                                viewModel.refreshPlugins(db)
+                                                Toast.makeText(
+                                                    context,
+                                                    "Plugin Installed",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                Log.d(
+                                                    "PluginMarket",
+                                                    "✅ Installed ${selectedPlugin.name}"
+                                                )
+                                            },
+                                            onFailure = {
+                                                Log.w("PluginMarket", it)
+                                                Toast.makeText(
+                                                    context,
+                                                    it,
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        )
                                     }
                                 }
                             }
-                        })
+                        }
                     }
                 }
             }
@@ -202,35 +286,188 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
             Modifier
                 .fillMaxWidth()
                 .padding(bottom = 20.dp, end = 26.dp),
-            horizontalArrangement = Arrangement.End
+            verticalAlignment = Alignment.CenterVertically
         ) {
+
+            SingleChoiceSegmentedButton(modifier = Modifier.padding(start = 26.dp)) { index, label ->
+                currentScreen = label
+            }
+
+            Spacer(Modifier.weight(1f))
+
             ExtendedFloatingActionButton(
                 onClick = { isImportingPlugin = !isImportingPlugin },
                 expanded = !isImportingPlugin,
+                modifier = Modifier.height(53.dp),
                 icon = {
                     Icon(
                         imageVector = Icons.Outlined.Backpack,
                         contentDescription = "Add Plugin",
-                        tint = if (!isImportingPlugin) Color.Black else Color.LightGray
                     )
                 },
                 text = {
                     Text(
                         text = "Import Plugin",
-                        color = if (!isImportingPlugin) Color.Black else Color.LightGray
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold
                     )
                 },
-                containerColor = if (isImportingPlugin) Color.Black else Color.LightGray
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
-
-
         }
     }
 
 }
 
 @Composable
-fun PluginScreenMainContent(
+fun MarketPluginScreen(
+    plugins: List<PluginLink>,
+    db: PluginInstalledDatabase,
+    onDownloadClick: suspend (PluginLink) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(plugins) { plugin ->
+            MarketPluginCard(plugin = plugin, db = db, onDownloadClick = onDownloadClick)
+        }
+    }
+}
+
+
+@Composable
+fun MarketPluginCard(
+    plugin: PluginLink,
+    db: PluginInstalledDatabase,
+    onDownloadClick: suspend (PluginLink) -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isInstalled by remember { mutableStateOf(false) }
+    var isDownloading by remember { mutableStateOf(false) }
+
+    // Check if already installed
+    LaunchedEffect(plugin.name) {
+        isInstalled = db.pluginDao().getPluginByName(plugin.name) != null
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(16.dp),
+    ) {
+        Column {
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = plugin.name,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = "Description:",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold
+            )
+            RichText(
+                text = plugin.description,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "Plugin API:${plugin.apiVersion}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.background,
+                            shape = MaterialTheme.shapes.large
+                        )
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                )
+
+                Text(
+                    text = "Plugin Version:${plugin.pluginVersion}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.background,
+                            shape = MaterialTheme.shapes.large
+                        )
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                )
+            }
+
+            if (plugin.hasUpdate) {
+                Text("⚠️ Update Available", color = Color.Yellow, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    if (!isInstalled && !isDownloading) {
+                        isDownloading = true
+                        scope.launch {
+                            Toast
+                                .makeText(
+                                    context,
+                                    "⬇️ Downloading ${plugin.name}",
+                                    Toast.LENGTH_SHORT
+                                )
+                                .show()
+
+                            onDownloadClick(plugin) // Call your actual download logic
+                            isDownloading = false
+                            isInstalled = true
+                        }
+                    }
+                },
+                enabled = !isInstalled && !isDownloading,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    disabledContainerColor = Color.LightGray
+                )
+            ) {
+                if (isDownloading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.Black
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Downloading...", color = Color.Black)
+                } else if (isInstalled) {
+                    Icon(Icons.Filled.Check, contentDescription = null, tint = Color.Black)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Installed", color = Color.Black)
+                } else {
+                    Icon(Icons.Default.Download, contentDescription = null, tint = Color.Black)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Download", color = Color.Black)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InstalledPluginScreen(
     plugins: List<InstalledPluginModel>,
     onPluginDeleted: (plugin: InstalledPluginModel) -> Unit
 ) {

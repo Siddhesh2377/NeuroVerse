@@ -29,4 +29,7 @@ interface PluginDao{
 
     @Query("DELETE FROM InstalledPluginModel WHERE id = :id")
     suspend fun deletePlugin(id: Int)
+
+    @Query("SELECT * FROM InstalledPluginModel WHERE pluginName = :pluginName LIMIT 1")
+    suspend fun getPluginByName(pluginName: String): InstalledPluginModel?
 }

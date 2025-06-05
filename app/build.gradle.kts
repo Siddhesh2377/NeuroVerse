@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -85,6 +86,9 @@ dependencies {
 
     //DATABASE
     implementation(libs.androidx.room.runtime)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.database)
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)
 

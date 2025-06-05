@@ -21,18 +21,25 @@ import com.dark.neuroverse.compose.screens.HomeScreen
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter
 import com.dark.neuroverse.services.PluginSandboxService
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
+import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.ktx.firestore
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PluginRouter.init(applicationContext)
         AiRouter.initAiRouter(BuildConfig.API_KEY)
+        FirebaseApp.initializeApp(this)
+        val db = Firebase.firestore
+
         enableEdgeToEdge()
         setContent {
             NeuroVerseTheme {
                 Scaffold {
                     HomeScreen(it)
-                   // runPluginInSandbox(this, "List Applications Plugin")
+                    // runPluginInSandbox(this, "List Applications Plugin")
                 }
             }
         }

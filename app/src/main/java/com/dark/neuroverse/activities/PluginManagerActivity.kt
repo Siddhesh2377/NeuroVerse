@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Scaffold
 import com.dark.neuroverse.compose.screens.PluginScreen
+import com.dark.neuroverse.data.backend.fetchAllPlugins
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 
 class PluginManagerActivity : ComponentActivity() {
@@ -17,6 +18,9 @@ class PluginManagerActivity : ComponentActivity() {
             NeuroVerseTheme {
                 Scaffold {
                     PluginScreen(it)
+                    fetchAllPlugins {
+
+                    }
                 }
             }
         }
