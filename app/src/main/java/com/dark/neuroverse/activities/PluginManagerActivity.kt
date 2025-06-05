@@ -18,9 +18,6 @@ class PluginManagerActivity : ComponentActivity() {
             NeuroVerseTheme {
                 Scaffold {
                     PluginScreen(it)
-                    fetchAllPlugins {
-
-                    }
                 }
             }
         }

@@ -61,16 +61,16 @@ fun HomeScreen(paddingValues: PaddingValues) {
     var termsAccepted by remember { mutableStateOf(false) }
     var acceptChecked by remember { mutableStateOf(false) }
 
-    var hasAudioPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        )
-    }
+//    var hasAudioPermission by remember {
+//        mutableStateOf(
+//            ContextCompat.checkSelfPermission(
+//                context,
+//                Manifest.permission.RECORD_AUDIO
+//            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+//        )
+//    }
 
-    val isSetupComplete = termsAccepted && hasAudioPermission
+    val isSetupComplete = termsAccepted
 
     LaunchedEffect(Unit) {
         val accepted = UserPrefs.isTermsAccepted(context).first()
@@ -79,17 +79,24 @@ fun HomeScreen(paddingValues: PaddingValues) {
             showTerms = true
         }
     }
+//
+//    val audioPermissionLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.RequestPermission(),
+//        onResult = { isGranted ->
+//            hasAudioPermission = isGranted
+//            if (isGranted) {
+//                val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+//                context.startActivity(intent)
+//            }
+//        }
+//    )
 
-    val audioPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            hasAudioPermission = isGranted
-            if (isGranted) {
-                val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
-                context.startActivity(intent)
-            }
+    LaunchedEffect(termsAccepted) {
+        if (termsAccepted){
+            val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+            context.startActivity(intent)
         }
-    )
+    }
 
     NeuroVerseTheme {
         Column(
@@ -106,7 +113,7 @@ fun HomeScreen(paddingValues: PaddingValues) {
                             context.startActivity(this)
                         }
                     } else {
-                        audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        //audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                     }
                 },
                 enabled = true,

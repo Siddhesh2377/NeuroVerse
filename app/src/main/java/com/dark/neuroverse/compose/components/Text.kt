@@ -20,7 +20,7 @@ fun GlitchTypingText(
 ) {
     var displayText by remember { mutableStateOf("") }
 
-    val randomChars = "!@#\$%&*ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    val randomChars = "!@#$%&*ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
     LaunchedEffect(finalText) {
         displayText = ""

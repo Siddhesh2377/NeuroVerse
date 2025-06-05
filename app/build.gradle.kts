@@ -17,12 +17,10 @@ android {
         applicationId = "com.dark.neurov"
         minSdk = 33
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1-beta"
+        versionCode = 3
+        versionName = "0.3-beta"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        ndkVersion = "29.0.13113456"
         val localPropertiesFile = rootProject.file("local.properties")
-
         val apiKey = if (localPropertiesFile.exists()) {
             val localProps = Properties().apply {
                 load(FileInputStream(localPropertiesFile))
@@ -33,23 +31,11 @@ android {
         }
 
         buildConfigField("String", "API_KEY", apiKey)
-
-        ndk {
-            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-        }
-
-
     }
-
-    packaging {
-        resources.pickFirsts += listOf(
-            "lib/**/libonnxruntime.so"
-        )
-    }
-
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = true           // Enable code shrinking
+            isShrinkResources = true         // Remove unused resources
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -67,13 +53,6 @@ android {
         compose = true
         buildConfig = true
     }
-
-    kapt {
-        arguments {
-            arg("room.schemaLocation", "$projectDir/schemas/app")
-        }
-    }
-
 }
 
 dependencies {
