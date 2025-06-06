@@ -89,12 +89,12 @@ object PluginRouter {
                             put("content", prompt)
                         })
                     })
-
-                    // Structured output format
-                    put("response_format", JSONObject().apply {
-                        put("type", "json_schema")
-                        put("json_schema", pluginAiSchema)
-                    })
+//
+//                    // Structured output format
+//                    put("response_format", JSONObject().apply {
+//                        put("type", "json_schema")
+//                        put("json_schema", pluginAiSchema)
+//                    })
                 })
         ) { code, response ->
             when (code) {
@@ -103,12 +103,13 @@ object PluginRouter {
                 }
 
                 1 -> {
+                    Log.d("PluginRouter", "AI Response: $response")
+
                     val data = phraseContent(response)
 
                     if (data.code != 0) {
                         pluginManager.runPlugin(data.pluginName.toString()) { it ->
-                            val requestBody =
-                                AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
+                            val requestBody = AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
                             AiRouter.processRequest(requestBody) { code, response ->
                                 it.onAiResponse(JSONObject(response))
                             }

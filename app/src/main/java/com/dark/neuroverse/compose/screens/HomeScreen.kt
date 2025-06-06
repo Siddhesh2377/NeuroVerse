@@ -1,10 +1,7 @@
 package com.dark.neuroverse.compose.screens
 
-import android.Manifest
 import android.content.Intent
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -44,7 +41,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
 import com.dark.neuroverse.activities.PluginManagerActivity
 import com.dark.neuroverse.data.fullTermsText
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
@@ -91,12 +87,6 @@ fun HomeScreen(paddingValues: PaddingValues) {
 //        }
 //    )
 
-    LaunchedEffect(termsAccepted) {
-        if (termsAccepted){
-            val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
-            context.startActivity(intent)
-        }
-    }
 
     NeuroVerseTheme {
         Column(
@@ -148,7 +138,12 @@ fun HomeScreen(paddingValues: PaddingValues) {
 
         if (showTerms) {
             AlertDialog(
-                onDismissRequest = { },
+                onDismissRequest = {
+                    if (termsAccepted) {
+                        val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+                        context.startActivity(intent)
+                    }
+                },
                 icon = {
                     Icon(
                         imageVector = Icons.TwoTone.Info,
