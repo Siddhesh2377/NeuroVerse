@@ -2,6 +2,13 @@ package com.dark.neuroverse.neurov.mcp.ai
 
 import android.content.Context
 import android.util.Log
+import android.view.ViewGroup
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.dark.ai_manager.ai.api_calls.AiRouter
 import com.dark.plugin_api.info.Plugin
 import com.dark.plugin_runtime.PluginManager
@@ -62,71 +69,61 @@ object PluginRouter {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun process(
-        prompt: String,
-    ): Plugin? {
+    suspend fun process(prompt: String): ViewGroup? {
+        return suspendCancellableCoroutine { cont ->
 
-        var plugin: Plugin? = null
-
-        val pluginListText = buildString {
-            if (!::pluginDescriptions.isInitialized || pluginDescriptions.isEmpty()) {
-                append("No plugins available.\n")
-            } else {
-                pluginDescriptions.forEachIndexed { index, (name, description) ->
-                    append("${index + 1}. $name: $description\n")
+            val pluginListText = buildString {
+                if (!::pluginDescriptions.isInitialized || pluginDescriptions.isEmpty()) {
+                    append("No plugins available.\n")
+                } else {
+                    pluginDescriptions.forEachIndexed { index, (name, description) ->
+                        append("${index + 1}. $name: $description\n")
+                    }
                 }
             }
-        }
 
-
-        AiRouter.processRequest(
-            AiRouter.submitStructuredRequest(
-                JSONObject().apply {
-                    put("messages", JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("role", "system")
-                            put("content", "$pluginAiInstruction $pluginListText".trimIndent())
+            AiRouter.processRequest(
+                AiRouter.submitStructuredRequest(
+                    JSONObject().apply {
+                        put("messages", JSONArray().apply {
+                            put(JSONObject().apply {
+                                put("role", "system")
+                                put("content", "$pluginAiInstruction $pluginListText".trimIndent())
+                            })
+                            put(JSONObject().apply {
+                                put("role", "user")
+                                put("content", prompt)
+                            })
                         })
-                        put(JSONObject().apply {
-                            put("role", "user")
-                            put("content", prompt)
-                        })
-                    })
-//
-//                    // Structured output format
-//                    put("response_format", JSONObject().apply {
-//                        put("type", "json_schema")
-//                        put("json_schema", pluginAiSchema)
-//                    })
-                })
-        ) { code, response ->
-            when (code) {
-                0 -> {
-                    Log.e("PluginRouter", "Error: AI Response: $response")
-                }
-
-                1 -> {
-                    Log.d("PluginRouter", "AI Response: $response")
-
-                    val data = phraseContent(response)
-
-                    if (data.code != 0) {
-                        pluginManager.runPlugin(data.pluginName.toString()) { it ->
-                            plugin = it
-                            Log.d("PluginRouter", "Plugin: ${it.render()}")
-//                            val requestBody = AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
-//                            AiRouter.processRequest(requestBody) { code, response ->
-//                                it.onAiResponse(JSONObject(response))
-//                            }
+                    }
+                )
+            ) { code, response ->
+                when (code) {
+                    0 -> {
+                        Log.e("PluginRouter", "Error: AI Response: $response")
+                        cont.resume(null, null)
+                    }
+                    1 -> {
+                        Log.d("PluginRouter", "AI Response: $response")
+                        val data = phraseContent(response)
+                        if (data.code != 0) {
+                            pluginManager.runPlugin(data.pluginName.toString()) { pluginInstance ->
+                                val requestBody = AiRouter.submitStructuredRequest(pluginInstance.submitAiRequest(prompt))
+                                AiRouter.processRequest(requestBody) { code2, response2 ->
+                                    val view = pluginInstance.onAiResponse(JSONObject(response2))
+                                    Log.d("PluginRouter", "Plugin view created.")
+                                    cont.resume(view, null)
+                                }
+                            }
+                        } else {
+                            cont.resume(null, null)
                         }
                     }
-
                 }
             }
         }
-
-        return plugin
     }
+
 
     data class PluginRouterData(
         val code: Int,

@@ -3,6 +3,7 @@ package com.dark.neuroverse.compose.screens.assistant
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.compose.animation.AnimatedContent
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.dark.ai_manager.ai.api_calls.AiRouter
 import com.dark.neuroverse.compose.components.GlitchTypingText
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter.process
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
@@ -56,6 +58,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 
 @Composable
@@ -234,55 +237,35 @@ private fun TempUI(context: Context, onClickOutside: () -> Unit) {
                 val pluginManager = remember { PluginManager(context) }
                 val db = remember { PluginInstalledDatabase.getInstance(context) }
 
-                var pluginName by remember { mutableStateOf<String?>(null) }
-                var plugin by remember { mutableStateOf<Plugin?>(null) }
+                var pluginView by remember { mutableStateOf<ViewGroup?>(null) }
 
-                // Load pluginName first
                 LaunchedEffect(Unit) {
                     withContext(Dispatchers.IO) {
-                        val name = db.pluginDao().getAllPlugins().firstOrNull()?.pluginName
-                        if (name != null) {
-                            pluginName = name
-                            Log.d("PluginManager", "Plugin Name: $name")
+                       pluginView = process("List Android Apps")
+                    }
+                }
 
-                            // Now run plugin
-                            pluginManager.runPlugin(name) {
-                                plugin = it
+                pluginView?.let { currentView ->
+                    AndroidView(
+                        factory = { context ->
+                            FrameLayout(context).apply {
+                                layoutParams = FrameLayout.LayoutParams(
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                                    FrameLayout.LayoutParams.WRAP_CONTENT
+                                )
+                                addView(currentView, FrameLayout.LayoutParams(
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                                    FrameLayout.LayoutParams.MATCH_PARENT
+                                ))
                             }
-                        } else {
-                            Log.e("PluginManager", "No plugins installed.")
+                        },
+                        update = { frameLayout ->
+                            frameLayout.removeAllViews()
+                            frameLayout.addView(currentView)
+                            frameLayout.invalidate()
                         }
-                    }
-                }
-
-                plugin.let {
-                    if (plugin != null) {
-                        Log.d("PluginManager", "Plugin: ${plugin!!.render()}")
-                        AndroidView(
-                            factory = { context ->
-                                FrameLayout(context).apply {
-                                    layoutParams = FrameLayout.LayoutParams(
-                                        FrameLayout.LayoutParams.MATCH_PARENT,
-                                        FrameLayout.LayoutParams.WRAP_CONTENT
-                                    )
-                                    addView(plugin!!.render(), FrameLayout.LayoutParams(
-                                        FrameLayout.LayoutParams.MATCH_PARENT,
-                                        FrameLayout.LayoutParams.MATCH_PARENT
-                                    ))
-                                }
-                            },
-                            update = { view ->
-                                // Optional: update the view if plugin changes
-                                Log.d("PluginManager", "Plugin Updated: ${plugin!!.render()}")
-                            }
-                        )
-                    } else {
-                        Log.e("PluginManager", "Plugin is null.")
-                    }
-
-                }
-
-                // Render plugin if ready
+                    )
+                } ?: Log.e("PluginManager", "Plugin view is null.")
 
             }
         }

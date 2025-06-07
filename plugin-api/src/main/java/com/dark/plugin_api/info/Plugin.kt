@@ -2,6 +2,8 @@ package com.dark.plugin_api.info
 
 import android.content.Context
 import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
@@ -56,8 +58,9 @@ open class Plugin(protected val context: Context)  {
      *
      * @param response The AI-generated response as a [JSONObject].
      */
-    open fun onAiResponse(response: JSONObject) {
+    open fun onAiResponse(response: JSONObject): ViewGroup {
         // Handle AI response here.
+        return LinearLayout(context)
     }
 
     /**
@@ -66,9 +69,5 @@ open class Plugin(protected val context: Context)  {
      */
     open fun onStop() {
         // Plugin cleanup logic can go here.
-    }
-
-    open fun render(): View{
-        return View(context)
     }
 }
