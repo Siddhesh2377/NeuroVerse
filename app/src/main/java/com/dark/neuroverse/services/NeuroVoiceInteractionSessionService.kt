@@ -65,7 +65,6 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setContent {
                 AssistantScreen(
-                    context = context.applicationContext,
                     onClickOutside = { finish() },
                     onActionCompleted = { finish() }
                 )

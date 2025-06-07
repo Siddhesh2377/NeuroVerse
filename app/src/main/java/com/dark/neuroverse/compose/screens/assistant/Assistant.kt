@@ -1,11 +1,9 @@
 package com.dark.neuroverse.compose.screens.assistant
 
-import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -46,141 +44,155 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.dark.ai_manager.ai.api_calls.AiRouter
 import com.dark.neuroverse.compose.components.GlitchTypingText
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter.process
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.ui.theme.White
-import com.dark.plugin_api.info.Plugin
-import com.dark.plugin_runtime.PluginManager
-import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-
 
 @Composable
 fun AssistantScreen(
-    context: Context,
     onClickOutside: () -> Unit,
     onActionCompleted: () -> Unit
 ) {
-    LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    var userPrompt by remember { mutableStateOf("Hey Man Open Whats App") }
+    var userPrompt by remember { mutableStateOf("Hey List the Android Apps") }
     var displayMessage by remember { mutableStateOf("Hello User, I am here to help you navigate your phone with ease") }
     var isProcessing by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    //  val scope = rememberCoroutineScope()
+    var showPluginView by remember { mutableStateOf(false) }
+    var pluginView by remember { mutableStateOf<ViewGroup?>(null) }
 
-    // Create recognizer once
-//    val recognizer = remember {
-//        GoogleSpeechRecognizer(context = context) { text ->
-//            if (text.isNotBlank() && text.length != 1 && text.length > 2) {
-//                userPrompt = text
-//                Log.e("Assistant Screen", "Router Response is >> $text")
-//
-//                scope.launch {
-//                    delay(1200)
-//                    try {
-//                        isProcessing = true
-//                        val result = process(text)
-//                        displayMessage = result
-//                        isProcessing = false
-//                        onActionCompleted()
-//                    } catch (e: Exception) {
-//                        Log.e("AssistantScreen", "executePrompt failed: ${e.message}")
-//                        isProcessing = false
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    if (true) {
-        TempUI(context, onClickOutside)
-    } else {
-        // UI
-        NeuroVerseTheme {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(onClick = onClickOutside)
-            ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                        .align(Alignment.BottomCenter)
-                        .clip(RoundedCornerShape(24.dp)),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-                ) {
-                    Column(modifier = Modifier.padding(18.dp)) {
-                        Text(
-                            text = "Neuro V",
-                            style = MaterialTheme.typography.displaySmall,
-                            fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier
-                                .padding(bottom = 12.dp)
-                                .fillMaxWidth()
-                        )
-
-                        OutlinedTextField(
-                            value = userPrompt,
-                            onValueChange = {
-                                userPrompt = it
-                            },
-                            readOnly = false,
-                            label = { Text("Ask something…") },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                cursorColor = MaterialTheme.colorScheme.primary,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                focusedTextColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        GlitchTypingText(
-                            finalText = displayMessage,
-                            delayPerChar = 10L,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                        )
-
-                        ListenButton(
-                            isProcessing,
-                            onToggleListening = {
-//                                if (!isProcessing) {
-//                                    isProcessing = true
-//                                    scope.launch {
-//                                        var response = process(userPrompt)
-//
-//                                        Log.e(
-//                                            "Assistant Screen",
-//                                            "Router Response is >> ${response.reason}"
-//                                        )
-//                                        displayMessage = response.reason
-//                                        isProcessing = false
-//                                    }
-//                                }
-                            }
-                        )
-                    }
+    LaunchedEffect(isProcessing) {
+        if (isProcessing) {
+            scope.launch {
+                try {
+                    val response = process(userPrompt)
+                    pluginView = response
+                    Log.e("Assistant Screen", "Router Response is >> $response")
+                    showPluginView = true
+                } catch (e: Exception) {
+                    Log.e("AssistantScreen", "executePrompt failed: ${e.message}")
+                } finally {
+                    isProcessing = false
+                    //onActionCompleted()
                 }
             }
         }
     }
 
+    AnimatedContent(
+        targetState = showPluginView,
+        transitionSpec = {
+            (fadeIn() + scaleIn()).togetherWith(fadeOut() + scaleOut())
+        },
+        label = "Animated Content",
+    ) { targetShowPluginView ->
+        if (targetShowPluginView) {
+            pluginView?.let { currentView ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(onClick = onClickOutside)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(250.dp)
+                            .padding(24.dp)
+                            .align(Alignment.BottomCenter)
+                    ) {
+                        AndroidView(
+                            factory = { context ->
+                                FrameLayout(context).apply {
+                                    layoutParams = FrameLayout.LayoutParams(
+                                        FrameLayout.LayoutParams.MATCH_PARENT,
+                                        FrameLayout.LayoutParams.MATCH_PARENT
+                                    )
+                                    addView(currentView)
+                                }
+                            },
+                            update = { frameLayout ->
+                                frameLayout.removeAllViews()
+                                frameLayout.addView(currentView)
+                                frameLayout.invalidate()
+                            }
+                        )
+                    }
+                }
+            } ?: run {
+                Log.e("PluginManager", "Plugin view is null.")
+                showPluginView = false
+            }
+        } else {
+            // UI
+            NeuroVerseTheme {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(onClick = onClickOutside)
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
+                            .align(Alignment.BottomCenter)
+                            .clip(RoundedCornerShape(24.dp)),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(18.dp)) {
+                            Text(
+                                text = "Neuro V",
+                                style = MaterialTheme.typography.displaySmall,
+                                fontFamily = FontFamily.Serif,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier
+                                    .padding(bottom = 12.dp)
+                                    .fillMaxWidth()
+                            )
+
+                            OutlinedTextField(
+                                value = userPrompt,
+                                onValueChange = {
+                                    userPrompt = it
+                                },
+                                label = { Text("Ask something…") },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                    cursorColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            GlitchTypingText(
+                                finalText = displayMessage,
+                                delayPerChar = 10L,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp)
+                            )
+
+                            ListenButton(
+                                isProcessing = isProcessing,
+                                onToggleListening = {
+                                    if (!isProcessing) {
+                                        isProcessing = true
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -189,82 +201,28 @@ private fun ListenButton(
     isProcessing: Boolean,
     onToggleListening: () -> Unit
 ) {
-
     Button(
-        onClick = { onToggleListening() },
+        onClick = onToggleListening,
         modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
-        AnimatedContent(isProcessing, transitionSpec = {
-            (fadeIn() + scaleIn()).togetherWith(fadeOut() + scaleOut())
-        }, label = "Animated Button") {
-            if (it) {
+        AnimatedContent(
+            targetState = isProcessing,
+            transitionSpec = {
+                (fadeIn() + scaleIn()).togetherWith(fadeOut() + scaleOut())
+            },
+            label = "Animated Button"
+        ) { targetIsProcessing ->
+            if (targetIsProcessing) {
                 LoadingIndicator(color = White)
             } else {
                 Text(
                     text = "Listen",
                     style = MaterialTheme.typography.bodyLarge
                 )
-            }
-        }
-
-    }
-}
-
-@Composable
-private fun TempUI(context: Context, onClickOutside: () -> Unit) {
-    NeuroVerseTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(onClick = onClickOutside)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .padding(24.dp)
-                    .align(Alignment.BottomCenter)
-            ) {
-                val pluginManager = remember { PluginManager(context) }
-                val db = remember { PluginInstalledDatabase.getInstance(context) }
-
-                var pluginView by remember { mutableStateOf<ViewGroup?>(null) }
-
-                LaunchedEffect(Unit) {
-                    withContext(Dispatchers.IO) {
-                       pluginManager.runPlugin(db.pluginDao().getAllPlugins().first().pluginName) {
-                           pluginView = it.onAiResponse(JSONObject().apply {
-                               put("action", "list_installed_apps")
-                           })
-                       }
-                    }
-                }
-
-                pluginView?.let { currentView ->
-                    AndroidView(
-                        factory = { context ->
-                            FrameLayout(context).apply {
-                                layoutParams = FrameLayout.LayoutParams(
-                                    FrameLayout.LayoutParams.MATCH_PARENT,
-                                    FrameLayout.LayoutParams.WRAP_CONTENT
-                                )
-                                addView(currentView, FrameLayout.LayoutParams(
-                                    FrameLayout.LayoutParams.MATCH_PARENT,
-                                    FrameLayout.LayoutParams.MATCH_PARENT
-                                ))
-                            }
-                        },
-                        update = { frameLayout ->
-                            frameLayout.removeAllViews()
-                            frameLayout.addView(currentView)
-                            frameLayout.invalidate()
-                        }
-                    )
-                } ?: Log.e("PluginManager", "Plugin view is null.")
             }
         }
     }
