@@ -222,17 +222,12 @@ private fun TempUI(context: Context, onClickOutside: () -> Unit) {
                 .fillMaxSize()
                 .clickable(onClick = onClickOutside)
         ) {
-            Card(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
                     .padding(24.dp)
                     .align(Alignment.BottomCenter)
-                    .clip(RoundedCornerShape(24.dp)),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 val pluginManager = remember { PluginManager(context) }
                 val db = remember { PluginInstalledDatabase.getInstance(context) }
@@ -241,7 +236,11 @@ private fun TempUI(context: Context, onClickOutside: () -> Unit) {
 
                 LaunchedEffect(Unit) {
                     withContext(Dispatchers.IO) {
-                       pluginView = process("List Android Apps")
+                       pluginManager.runPlugin(db.pluginDao().getAllPlugins().first().pluginName) {
+                           pluginView = it.onAiResponse(JSONObject().apply {
+                               put("action", "list_installed_apps")
+                           })
+                       }
                     }
                 }
 
@@ -266,7 +265,6 @@ private fun TempUI(context: Context, onClickOutside: () -> Unit) {
                         }
                     )
                 } ?: Log.e("PluginManager", "Plugin view is null.")
-
             }
         }
     }

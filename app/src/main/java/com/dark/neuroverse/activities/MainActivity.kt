@@ -17,6 +17,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Scaffold
 import com.dark.ai_manager.ai.api_calls.AiRouter
 import com.dark.neuroverse.BuildConfig
+import com.dark.neuroverse.R
 import com.dark.neuroverse.compose.screens.HomeScreen
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter
 import com.dark.neuroverse.services.PluginSandboxService
@@ -29,7 +30,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PluginRouter.init(applicationContext)
-        AiRouter.initAiRouter(BuildConfig.API_KEY)
         FirebaseApp.initializeApp(this)
         val db = Firebase.firestore
 

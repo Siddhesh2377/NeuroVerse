@@ -78,6 +78,7 @@ object PluginRouter {
                 } else {
                     pluginDescriptions.forEachIndexed { index, (name, description) ->
                         append("${index + 1}. $name: $description\n")
+                        Log.d("PluginRouter", "Plugin: $name, Description: $description")
                     }
                 }
             }

@@ -1,6 +1,7 @@
 package com.dark.ai_manager.ai.api_calls
 
 import android.util.Log
+import com.dark.ai_manager.BuildConfig
 import com.dark.ai_manager.ai.types.Models
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -20,16 +21,7 @@ object AiRouter {
      * API key used to authenticate with OpenRouter.ai
      * Must be initialized before making any requests.
      */
-    lateinit var apiKey: String
-
-    /**
-     * Initializes the router with the provided OpenRouter API key.
-     *
-     * @param key The API key used to authenticate with OpenRouter.
-     */
-    fun initAiRouter(key: String) {
-        apiKey = key
-    }
+    var apiKey: String = BuildConfig.API_KEY
 
     /**
      * Prepares the full JSON request body with model information and input content.
