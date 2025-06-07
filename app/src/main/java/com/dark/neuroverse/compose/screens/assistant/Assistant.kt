@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -26,6 +27,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +44,13 @@ import com.dark.neuroverse.compose.components.GlitchTypingText
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter.process
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.ui.theme.White
+import com.dark.plugin_api.info.Plugin
+import com.dark.plugin_runtime.PluginManager
+import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -52,7 +60,7 @@ fun AssistantScreen(
 ) {
     LocalContext.current
 
-    var userPrompt by remember { mutableStateOf("Can You list The Installed Android apps?") }
+    var userPrompt by remember { mutableStateOf("Hey Man Open Whats App") }
     var displayMessage by remember { mutableStateOf("Hello User, I am here to help you navigate your phone with ease") }
     var isProcessing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -82,84 +90,88 @@ fun AssistantScreen(
 //        }
 //    }
 
-
-    // UI
-    NeuroVerseTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(onClick = onClickOutside)
-        ) {
-            Card(
+    if (true) {
+        TempUI(onClickOutside)
+    } else {
+        // UI
+        NeuroVerseTheme {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .align(Alignment.BottomCenter)
-                    .clip(RoundedCornerShape(24.dp)),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    .fillMaxSize()
+                    .clickable(onClick = onClickOutside)
             ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Text(
-                        text = "Neuro V",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .padding(bottom = 12.dp)
-                            .fillMaxWidth()
-                    )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .align(Alignment.BottomCenter)
+                        .clip(RoundedCornerShape(24.dp)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text(
+                            text = "Neuro V",
+                            style = MaterialTheme.typography.displaySmall,
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .padding(bottom = 12.dp)
+                                .fillMaxWidth()
+                        )
 
-                    OutlinedTextField(
-                        value = userPrompt,
-                        onValueChange = {
-                            userPrompt = it
-                        },
-                        readOnly = false,
-                        label = { Text("Ask something…") },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        OutlinedTextField(
+                            value = userPrompt,
+                            onValueChange = {
+                                userPrompt = it
+                            },
+                            readOnly = false,
+                            label = { Text("Ask something…") },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
-                    GlitchTypingText(
-                        finalText = displayMessage,
-                        delayPerChar = 10L,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    )
+                        GlitchTypingText(
+                            finalText = displayMessage,
+                            delayPerChar = 10L,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        )
 
-                    ListenButton(
-                        isProcessing,
-                        onToggleListening = {
-                            if (!isProcessing) {
-                                isProcessing = true
-                                scope.launch {
-                                    var response = process(userPrompt)
-
-                                    Log.e(
-                                        "Assistant Screen",
-                                        "Router Response is >> ${response.reason}"
-                                    )
-                                    displayMessage = response.reason
-                                    isProcessing = false
-                                }
+                        ListenButton(
+                            isProcessing,
+                            onToggleListening = {
+//                                if (!isProcessing) {
+//                                    isProcessing = true
+//                                    scope.launch {
+//                                        var response = process(userPrompt)
+//
+//                                        Log.e(
+//                                            "Assistant Screen",
+//                                            "Router Response is >> ${response.reason}"
+//                                        )
+//                                        displayMessage = response.reason
+//                                        isProcessing = false
+//                                    }
+//                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -190,5 +202,57 @@ private fun ListenButton(
             }
         }
 
+    }
+}
+
+@Composable
+private fun TempUI(onClickOutside: () -> Unit) {
+    NeuroVerseTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(onClick = onClickOutside)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .padding(24.dp)
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(24.dp)),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                val context = LocalContext.current
+                val pluginManager = remember { PluginManager(context) }
+                val db = remember { PluginInstalledDatabase.getInstance(context) }
+
+                var pluginName by remember { mutableStateOf<String?>(null) }
+                var plugin by remember { mutableStateOf<Plugin?>(null) }
+
+                // Load pluginName first
+                LaunchedEffect(Unit) {
+                    withContext(Dispatchers.IO) {
+                        val name = db.pluginDao().getAllPlugins().firstOrNull()?.pluginName
+                        if (name != null) {
+                            pluginName = name
+                            Log.d("PluginManager", "Plugin Name: $name")
+
+                            // Now run plugin
+                            pluginManager.runPlugin(name) {
+                                plugin = it
+                            }
+                        } else {
+                            Log.e("PluginManager", "No plugins installed.")
+                        }
+                    }
+                }
+
+                // Render plugin if ready
+                plugin?.getComposableScreen()?.Render()
+            }
+        }
     }
 }

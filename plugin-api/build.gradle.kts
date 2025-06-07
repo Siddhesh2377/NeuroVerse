@@ -43,15 +43,23 @@ android {
 }
 
 afterEvaluate {
-    tasks.register<Jar>("exportPluginApiJar") {
-        dependsOn("compileReleaseKotlin")
+    tasks.register<Copy>("exportPluginAar") {
+        dependsOn("build", "assembleRelease") // Ensure release AAR is built
 
-        archiveBaseName.set("plugin-api")
-        archiveVersion.set("1.0.0")
-        archiveClassifier.set("")
+        val aarFile = layout.buildDirectory.file("outputs/aar/plugin-api-release.aar").get().asFile
 
-        from(layout.buildDirectory.dir("tmp/kotlin-classes/release").get().asFile)
-        destinationDirectory.set(layout.buildDirectory.dir("libs").get().asFile)
+
+        if (!aarFile.exists()) {
+            throw GradleException("❌ AAR file not found: ${aarFile.absolutePath}")
+        }
+
+        from(aarFile)
+        rename { _ -> "plugin-1.0.0.aar" }
+        into(layout.buildDirectory.dir("libs"))
+
+        doLast {
+            println("✅ Exported plugin AAR to libs/plugin-1.0.0.aar")
+        }
     }
 }
 

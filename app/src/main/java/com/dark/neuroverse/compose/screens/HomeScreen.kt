@@ -2,6 +2,7 @@ package com.dark.neuroverse.compose.screens
 
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -56,6 +57,7 @@ fun HomeScreen(paddingValues: PaddingValues) {
     var showTerms by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
     var acceptChecked by remember { mutableStateOf(false) }
+    var openAssistant by remember { mutableStateOf(false) }
 
 //    var hasAudioPermission by remember {
 //        mutableStateOf(
@@ -66,16 +68,31 @@ fun HomeScreen(paddingValues: PaddingValues) {
 //        )
 //    }
 
-    val isSetupComplete = termsAccepted
-
     LaunchedEffect(Unit) {
         val accepted = UserPrefs.isTermsAccepted(context).first()
         termsAccepted = accepted
+
+        val assistantEnabled = UserPrefs.isAssistantEnabled(context).first()
+        openAssistant = assistantEnabled
+
         if (!accepted) {
             showTerms = true
         }
     }
-//
+
+    // Prevent immediate jump to Settings if not yet accepted
+
+    LaunchedEffect(openAssistant) {
+        if (openAssistant) {
+            val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+            context.startActivity(intent)
+            Log.d("HomeScreen", "Opening Assistant Settings")
+            UserPrefs.setAssistantEnabled(context, false)
+            openAssistant = false
+        }
+    }
+
+
 //    val audioPermissionLauncher = rememberLauncherForActivityResult(
 //        contract = ActivityResultContracts.RequestPermission(),
 //        onResult = { isGranted ->
@@ -87,7 +104,6 @@ fun HomeScreen(paddingValues: PaddingValues) {
 //        }
 //    )
 
-
     NeuroVerseTheme {
         Column(
             modifier = Modifier
@@ -98,12 +114,12 @@ fun HomeScreen(paddingValues: PaddingValues) {
         ) {
             ElevatedButton(
                 onClick = {
-                    if (isSetupComplete) {
+                    if (termsAccepted) {
                         Intent(context, PluginManagerActivity::class.java).apply {
                             context.startActivity(this)
                         }
                     } else {
-                        //audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        showTerms = true
                     }
                 },
                 enabled = true,
@@ -114,7 +130,7 @@ fun HomeScreen(paddingValues: PaddingValues) {
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
                 Text(
-                    if (isSetupComplete) "Open Plugin Manager" else "Setup NeuroV",
+                    if (termsAccepted) "Open Plugin Manager" else "Setup NeuroV",
                     style = MaterialTheme.typography.titleMedium,
                     fontFamily = FontFamily.Monospace
                 )
@@ -139,10 +155,8 @@ fun HomeScreen(paddingValues: PaddingValues) {
         if (showTerms) {
             AlertDialog(
                 onDismissRequest = {
-                    if (termsAccepted) {
-                        val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
-                        context.startActivity(intent)
-                    }
+                    // Always allow dismiss manually
+                    showTerms = false
                 },
                 icon = {
                     Icon(
@@ -205,6 +219,7 @@ fun HomeScreen(paddingValues: PaddingValues) {
                                     UserPrefs.setTermsAccepted(context, true)
                                     termsAccepted = true
                                     showTerms = false
+                                    openAssistant = true
                                 }
                             }
                         },

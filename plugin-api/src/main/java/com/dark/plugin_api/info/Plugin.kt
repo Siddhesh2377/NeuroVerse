@@ -1,6 +1,14 @@
 package com.dark.plugin_api.info
 
 import android.content.Context
+import android.view.View
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.sp
 import org.json.JSONObject
 
 /**
@@ -58,5 +66,9 @@ open class Plugin(protected val context: Context)  {
      */
     open fun onStop() {
         // Plugin cleanup logic can go here.
+    }
+
+    open fun render(): View{
+        return View(context)
     }
 }

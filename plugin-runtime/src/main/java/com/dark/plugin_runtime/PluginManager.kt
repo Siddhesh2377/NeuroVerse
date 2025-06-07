@@ -75,8 +75,8 @@ class PluginManager(private val context: Context) {
         val pluginDis = manifest.getString("description")
         val mainClassName = manifest.getString("main")
         val pluginApiVersion = manifest.getString("plugin-api-version")
-        val permissions = (0 until manifest.getJSONArray("permissions")
-            .length()).map { manifest.getJSONArray("permissions").getString(it) }
+        val permissions = (0 until manifest.getJSONArray("permissions").length())
+            .map { manifest.getJSONArray("permissions").getString(it) }
         return InstalledPluginModel(
             pluginName = pluginName,
             pluginDescription = pluginDis,

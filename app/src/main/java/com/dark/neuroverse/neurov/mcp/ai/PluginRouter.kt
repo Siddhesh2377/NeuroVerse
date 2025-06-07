@@ -3,6 +3,7 @@ package com.dark.neuroverse.neurov.mcp.ai
 import android.content.Context
 import android.util.Log
 import com.dark.ai_manager.ai.api_calls.AiRouter
+import com.dark.plugin_api.info.Plugin
 import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import kotlinx.coroutines.CoroutineScope
@@ -61,9 +62,11 @@ object PluginRouter {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun process(
+    fun process(
         prompt: String,
-    ): PluginRouterData = suspendCancellableCoroutine { cont ->
+    ): Plugin? {
+
+        var plugin: Plugin? = null
 
         val pluginListText = buildString {
             if (!::pluginDescriptions.isInitialized || pluginDescriptions.isEmpty()) {
@@ -109,17 +112,20 @@ object PluginRouter {
 
                     if (data.code != 0) {
                         pluginManager.runPlugin(data.pluginName.toString()) { it ->
-                            val requestBody = AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
-                            AiRouter.processRequest(requestBody) { code, response ->
-                                it.onAiResponse(JSONObject(response))
-                            }
+                            plugin = it
+                            Log.d("PluginRouter", "Plugin: ${it.getComposableScreen()}")
+//                            val requestBody = AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
+//                            AiRouter.processRequest(requestBody) { code, response ->
+//                                it.onAiResponse(JSONObject(response))
+//                            }
                         }
                     }
 
-                    cont.resume(data, null)
                 }
             }
         }
+
+        return plugin
     }
 
     data class PluginRouterData(
