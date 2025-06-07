@@ -113,7 +113,7 @@ object PluginRouter {
                     if (data.code != 0) {
                         pluginManager.runPlugin(data.pluginName.toString()) { it ->
                             plugin = it
-                            Log.d("PluginRouter", "Plugin: ${it.getComposableScreen()}")
+                            Log.d("PluginRouter", "Plugin: ${it.render()}")
 //                            val requestBody = AiRouter.submitStructuredRequest(it.submitAiRequest(prompt))
 //                            AiRouter.processRequest(requestBody) { code, response ->
 //                                it.onAiResponse(JSONObject(response))

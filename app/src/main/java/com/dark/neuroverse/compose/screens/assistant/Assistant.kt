@@ -1,6 +1,10 @@
 package com.dark.neuroverse.compose.screens.assistant
 
+import android.app.Activity
+import android.content.Context
 import android.util.Log
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -40,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.dark.neuroverse.compose.components.GlitchTypingText
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter.process
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
@@ -55,6 +60,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun AssistantScreen(
+    context: Context,
     onClickOutside: () -> Unit,
     onActionCompleted: () -> Unit
 ) {
@@ -91,7 +97,7 @@ fun AssistantScreen(
 //    }
 
     if (true) {
-        TempUI(onClickOutside)
+        TempUI(context, onClickOutside)
     } else {
         // UI
         NeuroVerseTheme {
@@ -206,7 +212,7 @@ private fun ListenButton(
 }
 
 @Composable
-private fun TempUI(onClickOutside: () -> Unit) {
+private fun TempUI(context: Context, onClickOutside: () -> Unit) {
     NeuroVerseTheme {
         Box(
             modifier = Modifier
@@ -225,7 +231,6 @@ private fun TempUI(onClickOutside: () -> Unit) {
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
-                val context = LocalContext.current
                 val pluginManager = remember { PluginManager(context) }
                 val db = remember { PluginInstalledDatabase.getInstance(context) }
 
@@ -250,8 +255,35 @@ private fun TempUI(onClickOutside: () -> Unit) {
                     }
                 }
 
+                plugin.let {
+                    if (plugin != null) {
+                        Log.d("PluginManager", "Plugin: ${plugin!!.render()}")
+                        AndroidView(
+                            factory = { context ->
+                                FrameLayout(context).apply {
+                                    layoutParams = FrameLayout.LayoutParams(
+                                        FrameLayout.LayoutParams.MATCH_PARENT,
+                                        FrameLayout.LayoutParams.WRAP_CONTENT
+                                    )
+                                    addView(plugin!!.render(), FrameLayout.LayoutParams(
+                                        FrameLayout.LayoutParams.MATCH_PARENT,
+                                        FrameLayout.LayoutParams.MATCH_PARENT
+                                    ))
+                                }
+                            },
+                            update = { view ->
+                                // Optional: update the view if plugin changes
+                                Log.d("PluginManager", "Plugin Updated: ${plugin!!.render()}")
+                            }
+                        )
+                    } else {
+                        Log.e("PluginManager", "Plugin is null.")
+                    }
+
+                }
+
                 // Render plugin if ready
-                plugin?.getComposableScreen()?.Render()
+
             }
         }
     }

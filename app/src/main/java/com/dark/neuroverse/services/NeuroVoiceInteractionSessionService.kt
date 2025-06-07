@@ -58,12 +58,14 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
             setViewTreeSavedStateRegistryOwner(savedStateRegistryOwner)
         }
 
+
         // Create and configure ComposeView
         val composeView = ComposeView(context).apply {
             // Dispose composition when detached to free resources
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setContent {
                 AssistantScreen(
+                    context = context.applicationContext,
                     onClickOutside = { finish() },
                     onActionCompleted = { finish() }
                 )
