@@ -94,10 +94,10 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
 
-    var db = remember { PluginInstalledDatabase.getInstance(context) }
+    val db = remember { PluginInstalledDatabase.getInstance(context) }
     var isImportingPlugin by remember { mutableStateOf(false) }
     val plugins by viewModel.pluginsList.collectAsState()
-    var pluginManager = PluginManager(context)
+    val pluginManager = PluginManager(context)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -217,7 +217,7 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                     }
 
                     false -> {
-                        AnimatedContent(currentScreen) {
+                        AnimatedContent(currentScreen) { it ->
                             when (it) {
                                 "Installed" -> InstalledPluginScreen(
                                     plugins,
@@ -263,7 +263,7 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                                                     "✅ Installed ${selectedPlugin.name}"
                                                 )
                                             },
-                                            onFailure = {
+                                            onFailure = { it ->
                                                 Log.w("PluginMarket", it)
                                                 Toast.makeText(
                                                     context,
@@ -575,7 +575,7 @@ fun InstalledPluginScreen(
 
                                 Spacer(Modifier.weight(1f))
                                 val context = LocalContext.current
-                                var isChecked = remember { mutableStateOf(plugin.isEnabled) }
+                                val isChecked = remember { mutableStateOf(plugin.isEnabled) }
 
                                 Switch(
                                     isChecked.value, onCheckedChange = {

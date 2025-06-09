@@ -1,7 +1,7 @@
 package com.dark.plugin_runtime.engine
 
 import android.util.Log
-import com.dark.plugin_api.info.Plugin
+import com.dark.plugin_api.info.plugin.Plugin
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
 

@@ -46,30 +46,5 @@ class MainActivity : ComponentActivity() {
 
 }
 
-fun runPluginInSandbox(context: Context, pluginName: String) {
-    val connection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val messenger = Messenger(service)
-            val msg = Message.obtain(null, PluginSandboxService.MSG_RUN_PLUGIN)
-            msg.replyTo = Messenger(Handler(Looper.getMainLooper()) { reply ->
-                val response = reply.data.getString("status") ?: "unknown"
-                Log.i("PluginManager", "🔁 Plugin sandbox response: $response")
-                true
-            })
-            msg.data = Bundle().apply {
-                putString("plugin_name", pluginName)
-            }
-            messenger.send(msg)
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {}
-    }
-
-    val intent = Intent(context, PluginSandboxService::class.java)
-    context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
-}
-
-
-
 
 

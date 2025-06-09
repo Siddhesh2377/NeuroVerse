@@ -16,8 +16,8 @@
 }
 
 # Plugin interface
--keep interface com.dark.plugin_api.info.Plugin
--keep class com.dark.plugin_api.info.Plugin { *; }
+-keep interface com.dark.plugin_api.info.plugin.Plugin
+-keep class com.dark.plugin_api.info.plugin.Plugin { *; }
 
 # PluginRouter models
 -keep class com.dark.neuroverse.data.models.** { *; }

@@ -3,14 +3,7 @@ package com.dark.neuroverse.neurov.mcp.ai
 import android.content.Context
 import android.util.Log
 import android.view.ViewGroup
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.dark.ai_manager.ai.api_calls.AiRouter
-import com.dark.plugin_api.info.Plugin
 import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import kotlinx.coroutines.CoroutineScope

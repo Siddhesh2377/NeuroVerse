@@ -136,6 +136,27 @@ fun HomeScreen(paddingValues: PaddingValues) {
                 )
             }
 
+            Spacer(Modifier.height(20.dp))
+
+            ElevatedButton(
+                onClick = {
+                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                    context.startActivity(intent)
+                },
+                enabled = true,
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.fillMaxWidth(0.6f)
+            ) {
+                Text(
+                    "Setup NeuroV",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(

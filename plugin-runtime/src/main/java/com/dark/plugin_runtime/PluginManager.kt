@@ -1,11 +1,10 @@
 package com.dark.plugin_runtime
 
-import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
-import com.dark.plugin_api.info.Plugin
+import com.dark.plugin_api.info.plugin.Plugin
 import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import com.dark.plugin_runtime.engine.PluginExecutionManager

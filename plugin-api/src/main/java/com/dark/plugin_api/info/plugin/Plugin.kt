@@ -1,16 +1,8 @@
-package com.dark.plugin_api.info
+package com.dark.plugin_api.info.plugin
 
 import android.content.Context
-import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
 import org.json.JSONObject
 
 /**

@@ -1,4 +1,4 @@
-package com.dark.plugin_api.info
+package com.dark.plugin_api.info.plugin
 
 
 object PluginVersion {
