@@ -5,7 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
 import com.dark.plugin_api.info.plugin.Plugin
-import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
+import com.dark.plugin_runtime.model.PluginModel
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import com.dark.plugin_runtime.engine.PluginExecutionManager
 import dalvik.system.DexClassLoader
@@ -27,7 +27,7 @@ class PluginManager(private val context: Context) {
     private fun getPluginFolder(pluginName: String): File =
         File(context.getDir("plugins", Context.MODE_PRIVATE), pluginName)
 
-    fun installPlugin(uri: Uri, onResult: (pluginInfo: InstalledPluginModel) -> Unit) {
+    fun installPlugin(uri: Uri, onResult: (pluginInfo: PluginModel) -> Unit) {
         val rawFileName = queryFileName(uri) ?: "plugin_${System.currentTimeMillis()}.zip"
         val pluginName = rawFileName.substringBeforeLast('.')  // ✅ Strip .zip
         val pluginFolder = getPluginFolder(pluginName.substringBeforeLast('.'))
@@ -65,7 +65,7 @@ class PluginManager(private val context: Context) {
         }
     }
 
-    fun readPluginInfo(pluginName: String): InstalledPluginModel {
+    fun readPluginInfo(pluginName: String): PluginModel {
         val pluginFolder = getPluginFolder(pluginName)
         val manifestFilePath = File(pluginFolder, "manifest.json")
         if (!manifestFilePath.exists()) throw FileNotFoundException("❌ manifest.json not found at $manifestFilePath")
@@ -77,7 +77,7 @@ class PluginManager(private val context: Context) {
         val pluginApiVersion = manifest.getString("plugin-api-version")
         val permissions = (0 until manifest.getJSONArray("permissions").length())
             .map { manifest.getJSONArray("permissions").getString(it) }
-        return InstalledPluginModel(
+        return PluginModel(
             pluginName = pluginName,
             pluginDescription = pluginDis,
             pluginPermissions = permissions,

@@ -80,7 +80,7 @@ import com.dark.neuroverse.data.backend.fetchAllPlugins
 import com.dark.neuroverse.data.models.PluginLink
 import com.dark.neuroverse.viewModel.PluginScreenViewModel
 import com.dark.plugin_runtime.PluginManager
-import com.dark.plugin_runtime.database.installed_plugin_db.InstalledPluginModel
+import com.dark.plugin_runtime.model.PluginModel
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -467,8 +467,8 @@ fun MarketPluginCard(
 
 @Composable
 fun InstalledPluginScreen(
-    plugins: List<InstalledPluginModel>,
-    onPluginDeleted: (plugin: InstalledPluginModel) -> Unit
+    plugins: List<PluginModel>,
+    onPluginDeleted: (plugin: PluginModel) -> Unit
 ) {
     if (plugins.isEmpty()) {
         Column(

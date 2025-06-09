@@ -1,4 +1,4 @@
-package com.dark.plugin_runtime.database.installed_plugin_db
+package com.dark.plugin_runtime.model
 
 import androidx.room.*
 
@@ -8,7 +8,7 @@ import androidx.room.*
         Index(value = ["pluginName"], unique = true)
     ]
 )
-data class InstalledPluginModel(
+data class PluginModel(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val pluginName: String,              // ← this is now “unique”

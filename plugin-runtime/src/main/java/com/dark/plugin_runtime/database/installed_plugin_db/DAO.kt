@@ -4,16 +4,17 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import java.io.File
+import com.dark.plugin_runtime.model.PluginModel
+import java.nio.file.Path
 
 @Dao
 interface PluginDao{
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertPlugin(plugin: InstalledPluginModel): Long
+    suspend fun insertPlugin(plugin: PluginModel): Long
 
     @Query("SELECT * FROM InstalledPluginModel")
-    suspend fun getAllPlugins(): List<InstalledPluginModel>
+    suspend fun getAllPlugins(): List<PluginModel>
 
     @Query("SELECT pluginPath FROM InstalledPluginModel WHERE pluginName = :name")
     suspend fun getPluginFolderByName(name: String): String
@@ -27,9 +28,9 @@ interface PluginDao{
     @Query("UPDATE InstalledPluginModel SET isEnabled = :enabled WHERE id = :pluginId")
     suspend fun updatePluginEnabled(pluginId: Int, enabled: Boolean)
 
-    @Query("DELETE FROM InstalledPluginModel WHERE id = :id")
-    suspend fun deletePlugin(id: Int)
+    @Query("DELETE FROM InstalledPluginModel WHERE pluginPath = :path")
+    suspend fun deletePlugin(path: String)
 
     @Query("SELECT * FROM InstalledPluginModel WHERE pluginName = :pluginName LIMIT 1")
-    suspend fun getPluginByName(pluginName: String): InstalledPluginModel?
+    suspend fun getPluginByName(pluginName: String): PluginModel?
 }
