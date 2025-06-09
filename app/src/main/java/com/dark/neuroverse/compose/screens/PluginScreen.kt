@@ -79,9 +79,9 @@ import com.dark.neuroverse.data.backend.downloadAndInstall
 import com.dark.neuroverse.data.backend.fetchAllPlugins
 import com.dark.neuroverse.data.models.PluginLink
 import com.dark.neuroverse.viewModel.PluginScreenViewModel
-import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.model.PluginModel
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
+import com.dark.plugin_runtime.engine.PluginManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -97,7 +97,6 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
     val db = remember { PluginInstalledDatabase.getInstance(context) }
     var isImportingPlugin by remember { mutableStateOf(false) }
     val plugins by viewModel.pluginsList.collectAsState()
-    val pluginManager = PluginManager(context)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -114,7 +113,7 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                 isImportingPlugin = false
 
                 // 🔥 Trigger plugin install
-                pluginManager.installPlugin(it) { pluginData ->
+                PluginManager.installPlugin(it) { pluginData ->
                     Log.d("PluginInstall", "✅ Installed to ${pluginData.manifestFile}")
                     // inside your callback from pluginManager.installPlugin(…)
                     CoroutineScope(Dispatchers.IO).launch {
@@ -222,7 +221,7 @@ fun PluginScreen(paddingValues: PaddingValues, viewModel: PluginScreenViewModel 
                                 "Installed" -> InstalledPluginScreen(
                                     plugins,
                                     onPluginDeleted = { plugin ->
-                                        pluginManager.unInstallPlugin(plugin.pluginPath) { isDeleted ->
+                                        PluginManager.unInstallPlugin(plugin.pluginPath) { isDeleted ->
                                             if (isDeleted) {
                                                 CoroutineScope(Dispatchers.IO).launch {
                                                     db.pluginDao().deletePlugin(plugin.id)

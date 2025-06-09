@@ -4,8 +4,8 @@ import android.content.Context
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.dark.neuroverse.data.models.PluginLink
-import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
+import com.dark.plugin_runtime.engine.PluginManager
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
@@ -39,7 +39,6 @@ fun downloadAndInstall(
     onFailure: ((String) -> Unit)? = null
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
-    val pluginManager = PluginManager(context)
 
     scope.launch {
         val alreadyInstalled = db.pluginDao().getPluginByName(plugin.name) != null
@@ -73,7 +72,7 @@ fun downloadAndInstall(
                 file
             )
 
-            pluginManager.installPlugin(uri) { pluginData ->
+            PluginManager.installPlugin(uri) { pluginData ->
                 CoroutineScope(Dispatchers.IO).launch {
                     Log.d("PluginInstall", "✅ Installed to ${pluginData.manifestFile}")
                     val rowId = db.pluginDao().insertPlugin(pluginData)

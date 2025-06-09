@@ -5,14 +5,18 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.dark.plugin_api.info.plugin.Plugin
+import com.dark.plugin_api.info.services.types.ServiceType
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import com.dark.plugin_runtime.model.PluginModel
+import com.dark.plugin_runtime.model.ServicePlugins
 import com.dark.plugin_runtime.utils.queryFileName
 import dalvik.system.DexClassLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -21,24 +25,41 @@ import java.io.FileNotFoundException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
+/**
+ * Singleton object responsible for managing plugins:
+ * - Installation
+ * - Uninstallation
+ * - Service discovery
+ * - Dynamic loading & execution
+ */
 @SuppressLint("StaticFieldLeak")
 object PluginManager {
 
     private val pluginScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private lateinit var context: Context
 
+    /**
+     * Initialize PluginManager with application context.
+     */
     fun init(context: Context) {
-        this.context = context.applicationContext // safe!
+        this.context = context.applicationContext
     }
-    private const val TAG = "PluginManager"
 
+    private const val TAG = "PluginManager"
 
     private val db = PluginInstalledDatabase.getInstance(context)
 
+    /**
+     * Returns the folder where a given plugin is stored.
+     */
     private fun getPluginFolder(pluginName: String): File =
         File(context.getDir("plugins", Context.MODE_PRIVATE), pluginName)
 
-    private fun installPlugin(
+    /**
+     * Installs a plugin from the provided Uri.
+     */
+    fun installPlugin(
         uri: Uri,
         onInstallationStarted: () -> Unit = {},
         onError: (Exception) -> Unit = {},
@@ -47,8 +68,8 @@ object PluginManager {
         pluginScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    // Load All The Details
-                    val rawFileName = queryFileName(uri, context) ?: "plugin_${System.currentTimeMillis()}.zip"
+                    val rawFileName = queryFileName(uri, context)
+                        ?: "plugin_${System.currentTimeMillis()}.zip"
                     val pluginName = rawFileName.substringBeforeLast('.')
                     val pluginFolder = getPluginFolder(pluginName).apply { mkdirs() }
 
@@ -56,11 +77,12 @@ object PluginManager {
                     ZipInputStream(inputStream).use { zip ->
                         var entry: ZipEntry?
                         var extractedAny = false
+
                         withContext(Dispatchers.Main) { onInstallationStarted() }
 
                         while (zip.nextEntry.also { entry = it } != null) {
                             val outFile = File(pluginFolder, entry!!.name)
-                            if (entry.isDirectory) {
+                            if (entry!!.isDirectory) {
                                 outFile.mkdirs()
                             } else {
                                 outFile.parentFile?.mkdirs()
@@ -93,47 +115,58 @@ object PluginManager {
         }
     }
 
+    /**
+     * Reads manifest.json and constructs PluginModel.
+     */
     private fun readPluginInfo(pluginName: String): PluginModel {
         val pluginFolder = getPluginFolder(pluginName)
         val manifestFilePath = File(pluginFolder, "manifest.json")
-        if (!manifestFilePath.exists()) throw FileNotFoundException("❌ manifest.json not found at $manifestFilePath")
+
+        if (!manifestFilePath.exists())
+            throw FileNotFoundException("❌ manifest.json not found at $manifestFilePath")
+
         Log.d(TAG, "✅ Found manifest.json at: ${manifestFilePath.absolutePath}")
+
         val manifest = JSONObject(manifestFilePath.readText())
-        val pluginName = manifest.getString("name")
-        val pluginDis = manifest.getString("description")
-        val mainClassName = manifest.getString("main")
-        val pluginApiVersion = manifest.getString("plugin-api-version")
+
         val permissions = (0 until manifest.getJSONArray("permissions").length())
             .map { manifest.getJSONArray("permissions").getString(it) }
+
         return PluginModel(
-            pluginName = pluginName,
-            pluginDescription = pluginDis,
+            pluginName = manifest.getString("name"),
+            pluginDescription = manifest.getString("description"),
             pluginPermissions = permissions,
-            mainClass = mainClassName,
+            autoStart = manifest.getJSONObject("services").length() != 0,
+            mainClass = manifest.getString("main"),
             manifestFile = manifestFilePath.path,
             pluginPath = pluginFolder.path,
-            pluginApi = pluginApiVersion
+            pluginApi = manifest.getString("plugin-api-version")
         )
     }
 
+    /**
+     * Uninstalls the given plugin.
+     */
     fun unInstallPlugin(name: String, onResult: (Boolean) -> Unit) {
         pluginScope.launch {
             withContext(Dispatchers.IO) {
                 val path = db.pluginDao().getPluginFolderByName(name)
                 val file = File(path)
-                Log.d("PluginManager", "❌ Deleting plugin at: $path")
+
+                Log.d(TAG, "❌ Deleting plugin at: $path")
+
                 val result = if (file.exists()) {
                     val deleted = file.deleteRecursively()
                     if (deleted) {
-                        Log.d("PluginManager", "✅ Plugin deleted: $path")
+                        Log.d(TAG, "✅ Plugin deleted: $path")
                         db.pluginDao().deletePlugin(path)
                         true
                     } else {
-                        Log.e("PluginManager", "❌ Failed to delete plugin at: $path")
+                        Log.e(TAG, "❌ Failed to delete plugin at: $path")
                         false
                     }
                 } else {
-                    Log.w("PluginManager", "⚠️ Plugin path does not exist: $path")
+                    Log.w(TAG, "⚠️ Plugin path does not exist: $path")
                     false
                 }
 
@@ -144,18 +177,68 @@ object PluginManager {
         }
     }
 
+    private val _serviceBasedPlugins = MutableStateFlow<List<ServicePlugins>>(emptyList())
 
+    /**
+     * Public accessor for service-based plugins as StateFlow.
+     */
+    val serviceBasedPlugins: StateFlow<List<ServicePlugins>> = _serviceBasedPlugins.asStateFlow()
+
+    /**
+     * Loads all service-based plugins.
+     */
+    fun loadPluginServices() {
+        pluginScope.launch {
+            withContext(Dispatchers.IO) {
+                val sPlugins = db.pluginDao().getAutoRunningPlugins()
+                val newServicePlugins = mutableListOf<ServicePlugins>()
+
+                for (plugin in sPlugins) {
+                    val manifest = File(plugin.manifestFile)
+                    val manifestJson = JSONObject(manifest.readText())
+                    val services = manifestJson.getJSONObject("services")
+
+                    services.keys().forEach { serviceKey ->
+                        val serviceObj = services.getJSONObject(serviceKey)
+                        val serviceClassPath = serviceObj.getString("serviceClass")
+
+                        val serviceType = try {
+                            ServiceType.valueOf(serviceKey.uppercase().replace("-", "_"))
+                        } catch (_: Exception) {
+                            Log.e(TAG, "Unknown service type: $serviceKey")
+                            return@forEach
+                        }
+
+                        newServicePlugins.add(
+                            ServicePlugins(
+                                plugin.pluginName,
+                                serviceType,
+                                serviceClassPath
+                            )
+                        )
+                    }
+                }
+
+                _serviceBasedPlugins.value = newServicePlugins
+            }
+        }
+    }
+
+    /**
+     * Dynamically loads and runs a plugin.
+     */
     fun runPlugin(pluginName: String, onResult: (Plugin) -> Unit) {
-        var db = PluginInstalledDatabase.getInstance(context)
+        val db = PluginInstalledDatabase.getInstance(context)
         val scope = CoroutineScope(Dispatchers.IO)
+
         scope.launch {
             val pluginFolder = db.pluginDao().getPluginFolderByName(pluginName)
-
             val pluginJar = File(pluginFolder, "plugin.jar")
             val mainClass = db.pluginDao().getMainClassByName(pluginName)
-            if (!pluginJar.exists()) throw FileNotFoundException("❌ plugin.jar not found at $pluginJar")
 
-            //Copying the JAR file to a READ-ONLY folder : no dex can be executed in the WRITEABLE folder
+            if (!pluginJar.exists())
+                throw FileNotFoundException("❌ plugin.jar not found at $pluginJar")
+
             val safeJar = File(context.noBackupFilesDir, "$pluginName-readonly.jar")
             pluginJar.copyTo(safeJar, overwrite = true)
             safeJar.setReadOnly()
@@ -171,14 +254,25 @@ object PluginManager {
             val constructor = clazz.getDeclaredConstructor(Context::class.java)
             val instance = constructor.newInstance(context)
 
-
-            if (instance !is Plugin) {
+            if (instance !is Plugin)
                 throw IllegalStateException("❌ $mainClass does not implement Plugin interface")
-            }
+
             Log.i(TAG, "✅ Loaded plugin class: ${instance.getName()}")
             onResult(instance)
+
             PluginExecutionManager.launchPlugin(instance)
         }
     }
 
+    /**
+     * Stops the given plugin.
+     */
+    fun stopPlugin(name: String, onResult: (Boolean) -> Unit) {
+        pluginScope.launch {
+            withContext(Dispatchers.IO) {
+                PluginExecutionManager.stopPlugin(name)
+                onResult(true)
+            }
+        }
+    }
 }

@@ -2,27 +2,47 @@ package com.dark.neuroverse.services
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.annotation.SuppressLint
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.dark.plugin_runtime.engine.PluginManager
+import com.dark.plugin_runtime.model.ServicePlugins
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
-
+@SuppressLint("AccessibilityPolicy")
 class NeuroVAccessibilityService : AccessibilityService() {
+
+    private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var currentServiceList: List<ServicePlugins> = emptyList()
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Log.d("MyService", "View clicked")
         }
-        // You can’t directly get scancodes here — but we’ll get around that!
     }
 
     override fun onServiceConnected() {
+        super.onServiceConnected()
+
         Log.d("MyService", "Accessibility service connected")
         this.serviceInfo = this.serviceInfo.apply {
             flags = flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
         }
 
-
+        // Collect services:
+        serviceScope.launch {
+            PluginManager.serviceBasedPlugins.collect { plugins ->
+                Log.d("MyService", "Loaded services: $plugins")
+                currentServiceList = plugins
+            }
+        }
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
@@ -36,6 +56,10 @@ class NeuroVAccessibilityService : AccessibilityService() {
         return super.onKeyEvent(event)
     }
 
-
     override fun onInterrupt() {}
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel() // cleanup coroutine scope!
+    }
 }

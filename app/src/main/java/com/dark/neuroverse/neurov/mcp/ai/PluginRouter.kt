@@ -4,8 +4,8 @@ import android.content.Context
 import android.util.Log
 import android.view.ViewGroup
 import com.dark.ai_manager.ai.api_calls.AiRouter
-import com.dark.plugin_runtime.PluginManager
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
+import com.dark.plugin_runtime.engine.PluginManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,7 +25,6 @@ object PluginRouter {
 
     fun init(context: Context) {
         db = PluginInstalledDatabase.getInstance(context)
-        pluginManager = PluginManager(context.applicationContext)
         scope.launch {
             refreshDescriptionList()
         }
@@ -101,7 +100,7 @@ object PluginRouter {
                         Log.d("PluginRouter", "AI Response: $response")
                         val data = phraseContent(response)
                         if (data.code != 0) {
-                            pluginManager.runPlugin(data.pluginName.toString()) { pluginInstance ->
+                            PluginManager.runPlugin(data.pluginName.toString()) { pluginInstance ->
                                 val requestBody = AiRouter.submitStructuredRequest(pluginInstance.submitAiRequest(prompt))
                                 AiRouter.processRequest(requestBody) { code2, response2 ->
                                     val view = pluginInstance.onAiResponse(JSONObject(response2))
