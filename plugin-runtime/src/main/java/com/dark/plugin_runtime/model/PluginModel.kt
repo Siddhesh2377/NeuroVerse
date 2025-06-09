@@ -1,8 +1,9 @@
 package com.dark.plugin_runtime.model
 
 import androidx.room.*
+import com.dark.plugin_api.info.services.PluginService
+import com.dark.plugin_api.info.services.types.ScreenReading
 import com.dark.plugin_api.info.services.types.ServiceType
-import java.io.File
 
 @Entity(
     tableName = "InstalledPluginModel",
@@ -24,8 +25,9 @@ data class PluginModel(
     val isEnabled: Boolean = false
 )
 
-data class ServicePlugins(
+data class ScreenReadingServicePlugins(
     val pluginName: String,
     val serviceType: ServiceType,
-    val serviceClass: String
+    val serviceClass: String,
+    val service: ScreenReading
 )

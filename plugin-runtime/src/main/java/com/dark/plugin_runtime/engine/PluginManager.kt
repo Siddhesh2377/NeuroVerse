@@ -5,10 +5,11 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.dark.plugin_api.info.plugin.Plugin
+import com.dark.plugin_api.info.services.types.ScreenReading
 import com.dark.plugin_api.info.services.types.ServiceType
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import com.dark.plugin_runtime.model.PluginModel
-import com.dark.plugin_runtime.model.ServicePlugins
+import com.dark.plugin_runtime.model.ScreenReadingServicePlugins
 import com.dark.plugin_runtime.utils.queryFileName
 import dalvik.system.DexClassLoader
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -38,17 +40,19 @@ object PluginManager {
     private val pluginScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private lateinit var context: Context
+    private lateinit var db: PluginInstalledDatabase
 
     /**
      * Initialize PluginManager with application context.
      */
     fun init(context: Context) {
         this.context = context.applicationContext
+        db = PluginInstalledDatabase.getInstance(context)
     }
 
     private const val TAG = "PluginManager"
 
-    private val db = PluginInstalledDatabase.getInstance(context)
+
 
     /**
      * Returns the folder where a given plugin is stored.
@@ -136,7 +140,7 @@ object PluginManager {
             pluginName = manifest.getString("name"),
             pluginDescription = manifest.getString("description"),
             pluginPermissions = permissions,
-            autoStart = manifest.getJSONObject("services").length() != 0,
+            autoStart = manifest.has("services"),
             mainClass = manifest.getString("main"),
             manifestFile = manifestFilePath.path,
             pluginPath = pluginFolder.path,
@@ -177,21 +181,21 @@ object PluginManager {
         }
     }
 
-    private val _serviceBasedPlugins = MutableStateFlow<List<ServicePlugins>>(emptyList())
+    private val _serviceBasedPluginsScreenReading = MutableStateFlow<List<ScreenReadingServicePlugins>>(emptyList())
 
     /**
      * Public accessor for service-based plugins as StateFlow.
      */
-    val serviceBasedPlugins: StateFlow<List<ServicePlugins>> = _serviceBasedPlugins.asStateFlow()
+    val serviceBasedPluginsScreenReading: StateFlow<List<ScreenReadingServicePlugins>> = _serviceBasedPluginsScreenReading.asStateFlow()
 
     /**
      * Loads all service-based plugins.
      */
-    fun loadPluginServices() {
+    fun loadPluginScreenReadingServices() {
         pluginScope.launch {
             withContext(Dispatchers.IO) {
                 val sPlugins = db.pluginDao().getAutoRunningPlugins()
-                val newServicePlugins = mutableListOf<ServicePlugins>()
+                val newScreenReadingServicePlugins = mutableListOf<ScreenReadingServicePlugins>()
 
                 for (plugin in sPlugins) {
                     val manifest = File(plugin.manifestFile)
@@ -202,24 +206,41 @@ object PluginManager {
                         val serviceObj = services.getJSONObject(serviceKey)
                         val serviceClassPath = serviceObj.getString("serviceClass")
 
-                        val serviceType = try {
-                            ServiceType.valueOf(serviceKey.uppercase().replace("-", "_"))
-                        } catch (_: Exception) {
-                            Log.e(TAG, "Unknown service type: $serviceKey")
-                            return@forEach
-                        }
+                        val pluginFolder = db.pluginDao().getPluginFolderByName(plugin.pluginName)
+                        val pluginJar = File(pluginFolder, "plugin.jar")
 
-                        newServicePlugins.add(
-                            ServicePlugins(
+                        if (!pluginJar.exists())
+                            throw FileNotFoundException("❌ plugin.jar not found at $pluginJar")
+
+                        val safeJar = File(context.noBackupFilesDir, "${plugin.pluginName.trim()}-readonly.jar")
+                        pluginJar.copyTo(safeJar, overwrite = true)
+                        safeJar.setReadOnly()
+
+                        val classLoader = DexClassLoader(
+                            safeJar.absolutePath,
+                            null,
+                            null,
+                            context.classLoader
+                        )
+
+                        val clazz = classLoader.loadClass(serviceClassPath)
+                        val constructor = clazz.getDeclaredConstructor(Context::class.java)
+                        val instance = constructor.newInstance(context)
+
+                        if (instance !is ScreenReading) throw IllegalStateException("❌ $serviceClassPath does not implement Plugin interface")
+
+                        newScreenReadingServicePlugins.add(
+                            ScreenReadingServicePlugins(
                                 plugin.pluginName,
-                                serviceType,
-                                serviceClassPath
+                                ServiceType.SCREEN_READING,
+                                serviceClassPath,
+                                instance
                             )
                         )
                     }
                 }
 
-                _serviceBasedPlugins.value = newServicePlugins
+                _serviceBasedPluginsScreenReading.value = newScreenReadingServicePlugins
             }
         }
     }

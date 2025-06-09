@@ -1,6 +1,7 @@
 package com.dark.plugin_api.info.services
 
 import android.content.Context
+import android.view.KeyEvent
 import com.dark.plugin_api.info.services.types.ServiceType
 
 open class PluginService(protected val context: Context) {

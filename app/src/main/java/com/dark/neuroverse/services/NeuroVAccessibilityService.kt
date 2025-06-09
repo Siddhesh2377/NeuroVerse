@@ -6,10 +6,8 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import com.dark.plugin_runtime.engine.PluginManager
-import com.dark.plugin_runtime.model.ServicePlugins
+import com.dark.plugin_runtime.model.ScreenReadingServicePlugins
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,11 +18,18 @@ import kotlinx.coroutines.launch
 class NeuroVAccessibilityService : AccessibilityService() {
 
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private var currentServiceList: List<ServicePlugins> = emptyList()
+    private var currentServiceList: List<ScreenReadingServicePlugins> = emptyList()
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Log.d("MyService", "View clicked")
+        }
+        PluginManager.loadPluginScreenReadingServices()
+        serviceScope.launch {
+            PluginManager.serviceBasedPluginsScreenReading.collect { plugins ->
+                Log.d("MyService", "Loaded services: $plugins")
+                currentServiceList = plugins
+            }
         }
     }
 
@@ -36,9 +41,10 @@ class NeuroVAccessibilityService : AccessibilityService() {
             flags = flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
         }
 
+        PluginManager.loadPluginScreenReadingServices()
         // Collect services:
         serviceScope.launch {
-            PluginManager.serviceBasedPlugins.collect { plugins ->
+            PluginManager.serviceBasedPluginsScreenReading.collect { plugins ->
                 Log.d("MyService", "Loaded services: $plugins")
                 currentServiceList = plugins
             }
@@ -53,6 +59,11 @@ class NeuroVAccessibilityService : AccessibilityService() {
             return true
         }
 
+        currentServiceList.forEach { service ->
+            service.service.onKeyEvent(event)
+            Log.d("MyService", "Key event sent to service: ${service.service.getServiceType()}")
+        }
+
         return super.onKeyEvent(event)
     }
 
@@ -60,6 +71,9 @@ class NeuroVAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        serviceScope.cancel() // cleanup coroutine scope!
+        currentServiceList.forEach {
+            it.service.onDestroy()
+        }
+        serviceScope.cancel()
     }
 }
