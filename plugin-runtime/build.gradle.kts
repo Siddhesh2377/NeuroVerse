@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.dark.plugin_runtime"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 33

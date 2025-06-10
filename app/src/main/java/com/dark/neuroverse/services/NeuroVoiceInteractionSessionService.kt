@@ -18,7 +18,9 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.dark.neuroverse.compose.screens.NeuroVScreen
 import com.dark.neuroverse.compose.screens.assistant.AssistantScreen
+import com.dark.plugin_runtime.engine.PluginManager
 
 /**
  * A VoiceInteractionSessionService that hosts a Compose-based AssistantScreen.
@@ -48,6 +50,9 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
         super.onCreate()
         Log.d(TAG, "Session onCreate")
 
+        PluginManager.init(context)
+        PluginManager.updateInstalledPlugins()
+
         // Restore saved state (if any) without passing a bundle for now
         savedStateRegistryOwner.performRestore(null)
 
@@ -64,10 +69,14 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
             // Dispose composition when detached to free resources
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setContent {
-                AssistantScreen(
-                    onClickOutside = { finish() },
-                    onActionCompleted = { finish() }
-                )
+//                AssistantScreen(
+//                    onClickOutside = { finish() },
+//                    onActionCompleted = { finish() }
+//                )
+
+                NeuroVScreen(onClickOutside = {
+                    finish()
+                })
             }
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,

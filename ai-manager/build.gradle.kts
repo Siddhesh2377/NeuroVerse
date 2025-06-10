@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.dark.ai_manager"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 33

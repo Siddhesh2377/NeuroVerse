@@ -18,7 +18,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -51,8 +50,6 @@ object PluginManager {
     }
 
     private const val TAG = "PluginManager"
-
-
 
     /**
      * Returns the folder where a given plugin is stored.
@@ -119,6 +116,27 @@ object PluginManager {
         }
     }
 
+    private val _getInstalledPlugins = MutableStateFlow<List<PluginModel>>(emptyList())
+
+    /**
+     * Public accessor for service-based plugins as StateFlow.
+     */
+    val InstalledPlugins: StateFlow<List<PluginModel>> = _getInstalledPlugins.asStateFlow()
+
+    fun updateInstalledPlugins(){
+        pluginScope.launch {
+            withContext(Dispatchers.IO) {
+                val sPlugins = db.pluginDao().getAllPlugins()
+                val newScreenReadingServicePlugins = mutableListOf<PluginModel>()
+
+                for (plugin in sPlugins) {
+                    newScreenReadingServicePlugins.add(plugin)
+                }
+                _getInstalledPlugins.value = newScreenReadingServicePlugins
+            }
+        }
+    }
+
     /**
      * Reads manifest.json and constructs PluginModel.
      */
@@ -181,12 +199,14 @@ object PluginManager {
         }
     }
 
-    private val _serviceBasedPluginsScreenReading = MutableStateFlow<List<ScreenReadingServicePlugins>>(emptyList())
+    private val _serviceBasedPluginsScreenReading =
+        MutableStateFlow<List<ScreenReadingServicePlugins>>(emptyList())
 
     /**
      * Public accessor for service-based plugins as StateFlow.
      */
-    val serviceBasedPluginsScreenReading: StateFlow<List<ScreenReadingServicePlugins>> = _serviceBasedPluginsScreenReading.asStateFlow()
+    val serviceBasedPluginsScreenReading: StateFlow<List<ScreenReadingServicePlugins>> =
+        _serviceBasedPluginsScreenReading.asStateFlow()
 
     /**
      * Loads all service-based plugins.
@@ -212,7 +232,10 @@ object PluginManager {
                         if (!pluginJar.exists())
                             throw FileNotFoundException("❌ plugin.jar not found at $pluginJar")
 
-                        val safeJar = File(context.noBackupFilesDir, "${plugin.pluginName.trim()}-readonly.jar")
+                        val safeJar = File(
+                            context.noBackupFilesDir,
+                            "${plugin.pluginName.trim()}-readonly.jar"
+                        )
                         pluginJar.copyTo(safeJar, overwrite = true)
                         safeJar.setReadOnly()
 

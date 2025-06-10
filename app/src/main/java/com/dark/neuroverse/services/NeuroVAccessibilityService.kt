@@ -24,7 +24,7 @@ class NeuroVAccessibilityService : AccessibilityService() {
         if (event?.eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Log.d("MyService", "View clicked")
         }
-        PluginManager.loadPluginScreenReadingServices()
+
         serviceScope.launch {
             PluginManager.serviceBasedPluginsScreenReading.collect { plugins ->
                 Log.d("MyService", "Loaded services: $plugins")
@@ -40,6 +40,8 @@ class NeuroVAccessibilityService : AccessibilityService() {
         this.serviceInfo = this.serviceInfo.apply {
             flags = flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
         }
+
+        PluginManager.init(applicationContext)
 
         PluginManager.loadPluginScreenReadingServices()
         // Collect services:
