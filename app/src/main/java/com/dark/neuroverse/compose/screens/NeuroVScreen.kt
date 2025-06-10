@@ -10,6 +10,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,8 +26,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material3.ButtonDefaults
@@ -55,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dark.neuroverse.R
+import com.dark.neuroverse.compose.components.RichText
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.plugin_runtime.engine.PluginManager
 import com.dark.plugin_runtime.model.PluginModel
@@ -72,19 +77,20 @@ fun NeuroVScreen(onClickOutside: () -> Unit) {
     var action by remember { mutableStateOf(Action.NONE) }
 
     NeuroVerseTheme {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable {
                     onClickOutside()
                 }
                 .padding(horizontal = 12.dp)
-                .padding(bottom = 34.dp)
+                .padding(bottom = 34.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
                     .clip(RoundedCornerShape(24.dp))
                     .background(Color.White)
                     .padding(20.dp),
@@ -144,31 +150,54 @@ fun HeaderCard() {
 
 @Composable
 fun Body(onClick: (action: Action) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            icon = painterResource(R.drawable.typing),
-            title = "Write To AI",
-            desc = "Feel to be Private..? Try Typing Your Task To AI....",
-            onClick = { onClick(Action.WRITE) }
-        )
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            icon = painterResource(R.drawable.mic),
-            title = "Speak..!",
-            desc = "No Need To Type, Just Click And Let the Magic Happen",
-            onClick = { onClick(Action.SPEAK) }
-        )
-        QuickActionCard(
-            modifier = Modifier.weight(1f),
-            icon = painterResource(R.drawable.brain), // swap for your AGU icon
-            title = "AGU",
-            desc = "Let the AI understand the surrounding & make decisions",
-            true
-        )
+
+    var action by remember { mutableStateOf(Action.NONE) }
+
+    AnimatedContent(action, transitionSpec = {
+        (fadeIn()).togetherWith(fadeOut())
+    }, label = "Action") {
+        when (it) {
+            Action.NONE -> {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    QuickActionCard(
+                        modifier = Modifier.weight(1f),
+                        icon = painterResource(R.drawable.typing),
+                        title = "Write To AI",
+                        desc = "Feel to be Private..? Try Typing Your Task To AI....",
+                        onClick = {
+                            action = Action.WRITE
+                            onClick(Action.WRITE)
+                        }
+                    )
+                    QuickActionCard(
+                        modifier = Modifier.weight(1f),
+                        icon = painterResource(R.drawable.mic),
+                        title = "Speak..!",
+                        desc = "No Need To Type, Just Click And Let the Magic Happen",
+                        onClick = {
+                            action = Action.SPEAK
+                            onClick(Action.SPEAK)
+                        }
+                    )
+                    QuickActionCard(
+                        modifier = Modifier.weight(1f),
+                        icon = painterResource(R.drawable.brain), // swap for your AGU icon
+                        title = "AGU",
+                        desc = "Let the AI understand the surrounding & make decisions",
+                        true
+                    )
+                }
+            }
+
+            Action.WRITE -> ResultComposable()
+            Action.SPEAK -> ResultComposable()
+        }
     }
+
+
 }
 
 @Composable
@@ -285,7 +314,31 @@ fun BottomNavButton(text: String, selected: Boolean) {
 
 @Composable
 fun ResultComposable() {
-    Text(text = "Result")
+    val scrollState = rememberScrollState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(cardColor)
+            .verticalScroll(scrollState)
+    ) {
+        RichText(
+            text = "AI stands for Artificial Intelligence.\n" +
+                    "\n" +
+                    "In simple terms:\n" +
+                    "\uD83D\uDC49 AI is the ability of a machine or software to perform tasks that normally require human intelligence.\n" +
+                    "\u2028 These tasks can include:\n" +
+                    "understanding language (like I’m doing right now)\n" +
+                    "recognizing images\n" +
+                    "making decisions\n" +
+                    "solving problems\n" +
+                    "learning from experience (like how humans learn over time)",
+            color = Color.Black,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
 }
 
 
@@ -312,7 +365,9 @@ fun ActionBox(action: Action) {
             when (it) {
                 Action.WRITE -> {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
 
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -354,7 +409,9 @@ fun ActionBox(action: Action) {
 
                 Action.SPEAK -> {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {

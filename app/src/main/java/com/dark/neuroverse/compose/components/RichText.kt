@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -16,7 +17,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RichText(text: String) {
+fun RichText(text: String, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.onSecondary) {
     val annotatedText = remember(text) {
         buildAnnotatedString {
             val lines = text.lines()
@@ -42,9 +43,9 @@ fun RichText(text: String) {
     Text(
         text = annotatedText,
         style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSecondary,
+        color = color,
         textAlign = TextAlign.Justify,
-        modifier = Modifier.padding(start = 8.dp, top = 2.dp)
+        modifier = modifier.padding(start = 8.dp, top = 2.dp)
     )
 }
 
