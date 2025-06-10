@@ -1,9 +1,13 @@
 package com.dark.neuroverse.compose.screens
 
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +25,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -54,13 +61,16 @@ import com.dark.plugin_runtime.model.PluginModel
 
 
 private val cardColor = Color(0xFFEFEFEF)
-private val regularTextStyle =
-    TextStyle(color = Color.Black, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal)
-private val boldTextStyle =
-    TextStyle(color = Color.Black, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
+
+enum class Action {
+    NONE, WRITE, SPEAK
+}
 
 @Composable
 fun NeuroVScreen(onClickOutside: () -> Unit) {
+
+    var action by remember { mutableStateOf(Action.NONE) }
+
     NeuroVerseTheme {
         Box(
             modifier = Modifier
@@ -82,13 +92,14 @@ fun NeuroVScreen(onClickOutside: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 HeaderCard()
-                Body()
-                BottomBar()
+                Body(onClick = {
+                    action = it
+                })
+                BottomBar(action)
             }
         }
     }
 }
-
 
 @Composable
 fun HeaderCard() {
@@ -132,7 +143,7 @@ fun HeaderCard() {
 }
 
 @Composable
-fun Body() {
+fun Body(onClick: (action: Action) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -140,13 +151,15 @@ fun Body() {
             modifier = Modifier.weight(1f),
             icon = painterResource(R.drawable.typing),
             title = "Write To AI",
-            desc = "Feel to be Private..? Try Typing Your Task To AI...."
+            desc = "Feel to be Private..? Try Typing Your Task To AI....",
+            onClick = { onClick(Action.WRITE) }
         )
         QuickActionCard(
             modifier = Modifier.weight(1f),
             icon = painterResource(R.drawable.mic),
             title = "Speak..!",
-            desc = "No Need To Type, Just Click And Let the Magic Happen"
+            desc = "No Need To Type, Just Click And Let the Magic Happen",
+            onClick = { onClick(Action.SPEAK) }
         )
         QuickActionCard(
             modifier = Modifier.weight(1f),
@@ -159,43 +172,14 @@ fun Body() {
 }
 
 @Composable
-fun BottomBar() {
-    val pluginList = remember { mutableStateOf<List<PluginModel>>(emptyList()) }
-
-    PluginManager.updateInstalledPlugins()
-
-    LaunchedEffect(Unit) {
-        PluginManager.InstalledPlugins.collect { plugins ->
-            Log.d("MyService", "Loaded services: $plugins")
-            pluginList.value = plugins
-        }
-    }
-
+fun BottomBar(action: Action) {
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp))
             .background(cardColor), verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            "Plugins Actions",
-            modifier = Modifier.padding(horizontal = 24.dp),
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.Black,
-            fontFamily = FontFamily.Serif,
-            fontWeight = FontWeight.Bold
-        )
-
-        VerticalDivider(modifier = Modifier.height(50.dp), thickness = 2.dp)
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(start = 10.dp)
-        ) {
-            items(pluginList.value) {
-                BottomNavButton(it.pluginName, selected = false)
-            }
-        }
+        ActionBox(action)
     }
 }
 
@@ -205,7 +189,8 @@ fun QuickActionCard(
     icon: Painter,
     title: String,
     desc: String,
-    isCheckable: Boolean = false
+    isCheckable: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
     var checked by remember { mutableStateOf(false) }
 
@@ -239,6 +224,7 @@ fun QuickActionCard(
                             checked = !checked
                         } else {
                             Log.d("QuickActionCard", "Clicked")
+                            onClick()
                         }
 
                     },
@@ -294,5 +280,156 @@ fun BottomNavButton(text: String, selected: Boolean) {
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             fontSize = 16.sp
         )
+    }
+}
+
+@Composable
+fun ResultComposable() {
+    Text(text = "Result")
+}
+
+
+@Composable
+fun ActionBox(action: Action) {
+    var text by remember { mutableStateOf("") }
+    var isAguChecked by remember { mutableStateOf(false) }
+    val animColor = animateColorAsState(
+        if (isAguChecked) Color(0xFF0FB100) else Color.Black, animationSpec = tween(
+            durationMillis = 500, easing = FastOutSlowInEasing
+        )
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        AnimatedContent(action, transitionSpec = {
+            (fadeIn()).togetherWith(fadeOut())
+        }, label = "Action") {
+
+            when (it) {
+                Action.WRITE -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        BasicTextField(
+                            modifier = Modifier.weight(1f),
+                            value = text,
+                            onValueChange = { text = it },
+                            decorationBox = { innerTextField ->
+                                if (text.isEmpty()) {
+                                    Text(
+                                        text = "Write Message Here...",
+                                        style = TextStyle(fontSize = 16.sp, color = Color.Gray)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        )
+
+                        Icon(
+                            painterResource(R.drawable.brain),
+                            contentDescription = "AGU",
+                            tint = animColor.value,
+                            modifier = Modifier.clickable {
+                                isAguChecked = !isAguChecked
+                            })
+
+                        Icon(
+                            painterResource(R.drawable.mic),
+                            contentDescription = "Speak",
+                            modifier = Modifier.clickable {})
+
+                        Icon(
+                            Icons.AutoMirrored.Outlined.Send,
+                            contentDescription = "Send",
+                            modifier = Modifier.clickable {})
+                    }
+                }
+
+                Action.SPEAK -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.mic),
+                            contentDescription = "Speak",
+                            modifier = Modifier.clickable {})
+
+                        BasicTextField(
+                            modifier = Modifier.weight(1f),
+                            value = text,
+                            onValueChange = { text = it },
+                            decorationBox = { innerTextField ->
+                                if (text.isEmpty()) {
+                                    Text(
+                                        text = "Write Message Here...",
+                                        style = TextStyle(fontSize = 16.sp, color = Color.Gray)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        )
+
+                        Icon(
+                            painterResource(R.drawable.brain),
+                            contentDescription = "AGU",
+                            tint = animColor.value,
+                            modifier = Modifier.clickable {
+                                isAguChecked = !isAguChecked
+                            })
+                    }
+                }
+
+                Action.NONE -> {
+
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(cardColor), verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        val pluginList = remember { mutableStateOf<List<PluginModel>>(emptyList()) }
+
+                        PluginManager.updateInstalledPlugins()
+
+                        LaunchedEffect(Unit) {
+                            PluginManager.InstalledPlugins.collect { plugins ->
+                                Log.d("MyService", "Loaded services: $plugins")
+                                pluginList.value = plugins
+                            }
+                        }
+
+
+                        Text(
+                            "Plugins Actions",
+                            modifier = Modifier.padding(horizontal = 24.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Black,
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        VerticalDivider(modifier = Modifier.height(50.dp), thickness = 2.dp)
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(start = 10.dp)
+                        ) {
+                            items(pluginList.value) { it ->
+                                BottomNavButton(it.pluginName, selected = false)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
