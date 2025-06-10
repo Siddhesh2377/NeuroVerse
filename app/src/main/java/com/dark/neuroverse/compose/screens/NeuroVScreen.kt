@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,15 +54,20 @@ import com.dark.plugin_runtime.model.PluginModel
 
 
 private val cardColor = Color(0xFFEFEFEF)
+private val regularTextStyle =
+    TextStyle(color = Color.Black, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal)
+private val boldTextStyle =
+    TextStyle(color = Color.Black, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
 
 @Composable
 fun NeuroVScreen(onClickOutside: () -> Unit) {
-    // Whole screen, with extra rounding for that 'container' look
     NeuroVerseTheme {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clickable { onClickOutside() }
+                .clickable {
+                    onClickOutside()
+                }
                 .padding(horizontal = 12.dp)
                 .padding(bottom = 34.dp)
         ) {
@@ -82,6 +88,7 @@ fun NeuroVScreen(onClickOutside: () -> Unit) {
         }
     }
 }
+
 
 @Composable
 fun HeaderCard() {
@@ -261,11 +268,11 @@ fun QuickActionCard(
             Text(
                 desc,
                 style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Light,
                 lineHeight = 14.sp,
                 maxLines = 3,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 4.dp),
+                fontFamily = FontFamily.Serif,
+                modifier = Modifier.padding(),
                 color = Color.DarkGray
             )
         }

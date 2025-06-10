@@ -8,6 +8,19 @@ import android.service.voice.VoiceInteractionSession
 import android.service.voice.VoiceInteractionSessionService
 import android.util.Log
 import android.widget.FrameLayout
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -19,7 +32,6 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.dark.neuroverse.compose.screens.NeuroVScreen
-import com.dark.neuroverse.compose.screens.assistant.AssistantScreen
 import com.dark.plugin_runtime.engine.PluginManager
 
 /**
@@ -73,10 +85,33 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
 //                    onClickOutside = { finish() },
 //                    onActionCompleted = { finish() }
 //                )
+                val close = remember { mutableStateOf(false) }
 
-                NeuroVScreen(onClickOutside = {
-                    finish()
-                })
+                LaunchedEffect(close.value) {
+                    if (close.value) {
+                        // Wait for the animation to complete (match duration in tween)
+                        kotlinx.coroutines.delay(520L)
+                        finish()
+                    }
+                }
+
+                AnimatedContent(
+                    targetState = close.value,
+                    transitionSpec = {
+                        (slideInVertically(tween(durationMillis = 500, easing = FastOutLinearInEasing)) + fadeIn()).togetherWith(
+                             fadeOut(tween(durationMillis = 500, easing = FastOutSlowInEasing))
+                        )
+                    },
+                    label = "Animated Content"
+                ) { isClosing ->
+                    if (!isClosing) {
+                        NeuroVScreen(onClickOutside = {
+                            close.value = true
+                        })
+                    }
+                }
+
+
             }
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
