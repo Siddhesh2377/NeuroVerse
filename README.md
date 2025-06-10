@@ -39,7 +39,7 @@ NeuroVerse introduces a **dynamic plugin framework** that allows third-party dev
   <img src="https://github.com/user-attachments/assets/4087806f-9e5d-4888-89ee-2d95edfc26b1" alt="Preview 1" width="200"/>
   <img src="https://github.com/user-attachments/assets/43634f85-be9b-4b17-82c5-285f724fa717" alt="Preview 2" width="200"/>
   <img src="https://github.com/user-attachments/assets/7aae9d05-080b-4280-b4a3-5d8a272deea2" alt="Preview 3" width="200"/>
-  <img src="https://github.com/user-attachments/assets/d0b0daad-e35b-4a49-8db9-0988d99d702e" alt="Preview 4" width="200"/>
+  <img src="https://github.com/user-attachments/assets/ac8559d6-77ef-4bf5-83d0-a3b6be90a905" alt="Preview 4" width="200"/>
 </p>
 
 
