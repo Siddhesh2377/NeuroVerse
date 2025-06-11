@@ -12,6 +12,8 @@ private val Context.dataStore by preferencesDataStore(name = "settings")
 object UserPrefs {
     private val TERMS_ACCEPTED_KEY = booleanPreferencesKey("terms_accepted")
     private val ASSISTANT_ENABLED_KEY = booleanPreferencesKey("assistant_enabled")
+    private val ARTIFICIAL_GRENDEL_UNDERSTANDING_KEY =
+        booleanPreferencesKey("artificial_grendel_understanding")
 
     fun isTermsAccepted(context: Context): Flow<Boolean> {
         return context.dataStore.data.map { it[TERMS_ACCEPTED_KEY] == true }
@@ -27,5 +29,13 @@ object UserPrefs {
 
     suspend fun setAssistantEnabled(context: Context, enabled: Boolean) {
         context.dataStore.edit { it[ASSISTANT_ENABLED_KEY] = enabled }
+    }
+
+    fun isAGU(context: Context): Flow<Boolean> {
+        return context.dataStore.data.map { it[ARTIFICIAL_GRENDEL_UNDERSTANDING_KEY] == true }
+    }
+
+    suspend fun setAGU(context: Context, enabled: Boolean) {
+        context.dataStore.edit { it[ARTIFICIAL_GRENDEL_UNDERSTANDING_KEY] = enabled }
     }
 }

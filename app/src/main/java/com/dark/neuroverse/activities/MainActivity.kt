@@ -39,9 +39,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NeuroVerseTheme {
-                Scaffold {
-                   // NeuroVScreen(it)
-                    HomeScreen(it)
+                Scaffold { _ ->
+                    NeuroVScreen(onClickOutside = {
+
+                    })
+                   // HomeScreen(it)
                     // runPluginInSandbox(this, "List Applications Plugin")
                 }
             }

@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import com.dark.neuroverse.R
 import com.dark.neuroverse.compose.components.RichText
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
+import com.dark.neuroverse.utils.UserPrefs
 import com.dark.plugin_runtime.engine.PluginManager
 import com.dark.plugin_runtime.model.PluginModel
 
@@ -196,8 +198,6 @@ fun Body(onClick: (action: Action) -> Unit) {
             Action.SPEAK -> ResultComposable()
         }
     }
-
-
 }
 
 @Composable
@@ -222,6 +222,17 @@ fun QuickActionCard(
     onClick: () -> Unit = {}
 ) {
     var checked by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        UserPrefs.isAGU(context).collect {
+            checked = it
+        }
+    }
+
+    LaunchedEffect(checked) {
+        UserPrefs.setAGU(context, checked)
+    }
 
     val animColor = animateColorAsState(
         if (checked) Color(0xFF0FB100) else Color.Black, animationSpec = tween(
@@ -325,16 +336,17 @@ fun ResultComposable() {
             .verticalScroll(scrollState)
     ) {
         RichText(
-            text = "AI stands for Artificial Intelligence.\n" +
+            text = "**AI stands for Artificial Intelligence.**\n" +
                     "\n" +
-                    "In simple terms:\n" +
+                    "**In simple terms:**\n" +
                     "\uD83D\uDC49 AI is the ability of a machine or software to perform tasks that normally require human intelligence.\n" +
-                    "\u2028 These tasks can include:\n" +
-                    "understanding language (like I’m doing right now)\n" +
-                    "recognizing images\n" +
-                    "making decisions\n" +
-                    "solving problems\n" +
-                    "learning from experience (like how humans learn over time)",
+                    "\n" +
+                    "**These tasks can include:**\n" +
+                    "- understanding language (like I’m doing right now)\n" +
+                    "- recognizing images\n" +
+                    "- making decisions\n" +
+                    "- solving problems\n" +
+                    "- learning from experience (like how humans learn over time)",
             color = Color.Black,
             modifier = Modifier.padding(8.dp)
         )
@@ -346,6 +358,17 @@ fun ResultComposable() {
 fun ActionBox(action: Action) {
     var text by remember { mutableStateOf("") }
     var isAguChecked by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        UserPrefs.isAGU(context).collect {
+            isAguChecked = it
+        }
+    }
+
+    LaunchedEffect(isAguChecked) {
+        UserPrefs.setAGU(context, isAguChecked)
+    }
     val animColor = animateColorAsState(
         if (isAguChecked) Color(0xFF0FB100) else Color.Black, animationSpec = tween(
             durationMillis = 500, easing = FastOutSlowInEasing
