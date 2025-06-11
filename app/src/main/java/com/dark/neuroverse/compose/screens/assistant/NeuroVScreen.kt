@@ -1,7 +1,8 @@
-package com.dark.neuroverse.compose.screens
+package com.dark.neuroverse.compose.screens.assistant
 
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -10,8 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.ScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -99,8 +98,10 @@ fun NeuroVScreen(onClickOutside: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                HeaderCard()
-                Body(onClick = {
+                HeaderCard(action, onBack = {
+                    action = Action.NONE
+                })
+                Body(action, onClick = {
                     action = it
                 })
                 BottomBar(action)
@@ -110,22 +111,38 @@ fun NeuroVScreen(onClickOutside: () -> Unit) {
 }
 
 @Composable
-fun HeaderCard() {
+fun HeaderCard(action: Action, onBack: () -> Unit = {}) {
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp, 12.dp, 6.dp, 6.dp))
             .background(cardColor),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
     ) {
+
+        AnimatedVisibility(action != Action.NONE) {
+
+            Icon(
+                painterResource(R.drawable.back),
+                contentDescription = "Send",
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable { onBack() }
+            )
+
+        }
+
+        Spacer(Modifier.width(20.dp))
+
         Text(
             "Neuro V",
             style = MaterialTheme.typography.headlineMedium,
             fontFamily = FontFamily.Serif,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+                .weight(1f)
         )
 
         ElevatedButton(
@@ -151,9 +168,7 @@ fun HeaderCard() {
 }
 
 @Composable
-fun Body(onClick: (action: Action) -> Unit) {
-
-    var action by remember { mutableStateOf(Action.NONE) }
+fun Body(action: Action, onClick: (action: Action) -> Unit) {
 
     AnimatedContent(action, transitionSpec = {
         (fadeIn()).togetherWith(fadeOut())
@@ -170,7 +185,6 @@ fun Body(onClick: (action: Action) -> Unit) {
                         title = "Write To AI",
                         desc = "Feel to be Private..? Try Typing Your Task To AI....",
                         onClick = {
-                            action = Action.WRITE
                             onClick(Action.WRITE)
                         }
                     )
@@ -180,7 +194,6 @@ fun Body(onClick: (action: Action) -> Unit) {
                         title = "Speak..!",
                         desc = "No Need To Type, Just Click And Let the Magic Happen",
                         onClick = {
-                            action = Action.SPEAK
                             onClick(Action.SPEAK)
                         }
                     )
@@ -266,7 +279,6 @@ fun QuickActionCard(
                             Log.d("QuickActionCard", "Clicked")
                             onClick()
                         }
-
                     },
             ) {
                 Column(

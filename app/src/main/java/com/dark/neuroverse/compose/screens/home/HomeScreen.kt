@@ -1,4 +1,4 @@
-package com.dark.neuroverse.compose.screens
+package com.dark.neuroverse.compose.screens.home
 
 import android.content.Intent
 import android.provider.Settings
