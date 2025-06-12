@@ -36,7 +36,15 @@ import com.dark.neuroverse.ui.theme.Warning
 import com.dark.neuroverse.ui.theme.onWarning
 
 @Composable
-fun PermissionScreen(paddingValues: PaddingValues) {
+fun PermissionScreen(
+    paddingValues: PaddingValues,
+    onNext: () -> Unit
+) {
+    var assPermission by remember { mutableStateOf(false) }
+    var setAsDefault by remember { mutableStateOf(false) }
+
+    val enabled = assPermission && setAsDefault
+
     Column(
         Modifier
             .fillMaxSize()
@@ -54,7 +62,7 @@ fun PermissionScreen(paddingValues: PaddingValues) {
         )
 
         Text(
-            "thank you for patiently \nwaiting....!",
+            "Thank You For Patiently \nWaiting....!",
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.headlineSmall,
             fontFamily = FontFamily.Serif,
@@ -77,18 +85,21 @@ fun PermissionScreen(paddingValues: PaddingValues) {
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 PermissionCard(
-                    "Accessibility Permission",
-                    "Accessibility Permission is Optional but, not giving it Android may Block Some of your Favourite Plugin",
-                    true
+                    title = "Accessibility Permission",
+                    description = "Accessibility Permission is Optional but, not giving it Android may Block Some of your Favourite Plugin",
+                    checked = assPermission,
+                    onCheckedChange = { assPermission = it },
+                    isSkipAble = true
                 )
 
                 PermissionCard(
-                    "Set As Default Assistant",
-                    "This Is Also Option If You don’t want to change your default assistant then you can just use NeuroV within the NeuroV app or assign a HW Button ",
-                    false
+                    title = "Set As Default Assistant",
+                    description = "This Is Also Option If You don’t want to change your default assistant then you can just use NeuroV within the NeuroV app or assign a HW Button",
+                    checked = setAsDefault,
+                    onCheckedChange = { setAsDefault = it },
+                    isSkipAble = true
                 )
             }
-
         }
 
         Card(
@@ -107,11 +118,12 @@ fun PermissionScreen(paddingValues: PaddingValues) {
                     fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Bold
                 )
-
-                Button(onClick = {
-
-                }, enabled = false, colors = ButtonDefaults.buttonColors()) {
-                    Text("Install & Proceed", fontFamily = FontFamily.Serif)
+                Button(
+                    onClick = { onNext() },
+                    enabled = enabled,
+                    colors = ButtonDefaults.buttonColors()
+                ) {
+                    Text("Let’s GO", fontFamily = FontFamily.Serif)
                 }
             }
         }
@@ -120,9 +132,13 @@ fun PermissionScreen(paddingValues: PaddingValues) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PermissionCard(title: String, description: String, isSkipAble: Boolean = false) {
-    var checked by remember { mutableStateOf(false) }
-
+fun PermissionCard(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    isSkipAble: Boolean = false
+) {
     Card(
         shape = RoundedCornerShape(6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary)
@@ -138,30 +154,29 @@ fun PermissionCard(title: String, description: String, isSkipAble: Boolean = fal
             ) {
                 Text(
                     title,
-                    modifier = Modifier
-                        .weight(1f),
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.headlineMedium,
                     fontFamily = FontFamily.Serif,
                 )
 
                 CheckBX(
-                    checked,
+                    checked = checked,
                     isReadOnly = true,
-                    onCheckStateChange = { checked = it },
+                    onCheckStateChange = onCheckedChange
                 )
             }
 
             Text(
                 description,
                 style = MaterialTheme.typography.titleMediumEmphasized,
-                fontFamily = FontFamily.Serif,
+                fontFamily = FontFamily.Monospace,
             )
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                if (isSkipAble)
+                if (isSkipAble) {
                     Button(
                         onClick = {
-
+                            onCheckedChange(true)
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = onWarning,
@@ -172,11 +187,12 @@ fun PermissionCard(title: String, description: String, isSkipAble: Boolean = fal
                         Text("Skip", fontFamily = FontFamily.Serif)
                     }
 
-                Spacer(Modifier.width(10.dp))
+                    Spacer(Modifier.width(10.dp))
+                }
 
                 Button(
                     onClick = {
-                        checked = true
+                        onCheckedChange(true)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -190,4 +206,3 @@ fun PermissionCard(title: String, description: String, isSkipAble: Boolean = fal
         }
     }
 }
-

@@ -1,5 +1,6 @@
 package com.dark.neuroverse.compose.screens.setup.plugins
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -21,6 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,9 +35,27 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dark.neuroverse.compose.components.CheckBX
+import com.dark.neuroverse.compose.components.RichText
+import com.dark.neuroverse.data.backend.fetchAllPlugins
+import com.dark.neuroverse.data.models.PluginLink
+
 
 @Composable
-fun InstallPluginsScreen(paddingValues: PaddingValues) {
+fun InstallPluginsScreen(paddingValues: PaddingValues, onNext: (List<PluginLink>) -> Unit) {
+    val pluginList = remember { mutableStateListOf<PluginLink>() }
+    val pluginCheckedMap = remember { mutableStateMapOf<PluginLink, Boolean>() }
+
+    fetchAllPlugins { result ->
+        pluginList.clear()
+        pluginList.addAll(result)
+        // Initialize map for all plugins
+        result.forEach { plugin ->
+            if (!pluginCheckedMap.contains(plugin)) {
+                pluginCheckedMap[plugin] = false
+            }
+        }
+    }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -71,17 +93,23 @@ fun InstallPluginsScreen(paddingValues: PaddingValues) {
                         shape = RoundedCornerShape(16.dp)
                     )
                     .clip(RoundedCornerShape(16.dp))
-            ){
+            ) {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(5) {
-                        PluginCard()
+                    items(pluginList) { plugin ->
+                        PluginCard(
+                            title = plugin.name,
+                            description = plugin.description,
+                            checked = pluginCheckedMap[plugin] == true,
+                            onCheckedChange = { isChecked ->
+                                pluginCheckedMap[plugin] = isChecked
+                            }
+                        )
                     }
                 }
             }
-
         }
 
         Card(
@@ -102,8 +130,10 @@ fun InstallPluginsScreen(paddingValues: PaddingValues) {
                 )
 
                 Button(onClick = {
-
-                }, enabled = false, colors = ButtonDefaults.buttonColors()) {
+                    val downloadPluginsList = pluginCheckedMap.filter { it.value }.keys.toList()
+                    Log.d("Install Plugin", "Plugins List $downloadPluginsList")
+                    onNext(downloadPluginsList)
+                }, enabled = true, colors = ButtonDefaults.buttonColors()) {
                     Text("Install & Proceed", fontFamily = FontFamily.Serif)
                 }
             }
@@ -112,11 +142,15 @@ fun InstallPluginsScreen(paddingValues: PaddingValues) {
 }
 
 
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PluginCard() {
-    var checked by remember { mutableStateOf(false) }
-
+fun PluginCard(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
     Card(
         shape = RoundedCornerShape(6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary)
@@ -131,28 +165,22 @@ fun PluginCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "List Applications",
-                    modifier = Modifier
-                        .weight(1f),
+                    title,
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.headlineMedium,
                     fontFamily = FontFamily.Serif,
                 )
 
                 CheckBX(
-                    checked,
-                    onCheckStateChange = { checked = it },
+                    checked = checked,
+                    onCheckStateChange = onCheckedChange
                 )
             }
 
-            Text(
-                dummyPara,
+            RichText(
+                description,
                 style = MaterialTheme.typography.titleMediumEmphasized,
-                fontFamily = FontFamily.Serif,
             )
         }
     }
 }
-
-
-const val dummyPara =
-    "Android apps encompass a vast range of functionalities, from popular social media platforms like Facebook, Instagram, and TikTok to essential utilities like Google Maps and Google Chrome."

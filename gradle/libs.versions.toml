@@ -1,27 +1,27 @@
 [versions]
 agp = "8.10.1"
-converterGson = "2.9.0"
+converterGson = "3.0.0"
 datastorePreferences = "1.1.7"
-kotlin = "2.0.21"
+kotlin = "2.1.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.9.0"
+lifecycleRuntimeKtx = "2.9.1"
 activityCompose = "1.10.1"
-composeBom = "2025.05.01"
-lifecycleViewmodelCompose = "2.9.0"
+composeBom = "2025.06.00"
+lifecycleViewmodelCompose = "2.9.1"
 materialIconsExtended = "1.7.8"
 material3 = "1.4.0-alpha15"
 gson = "2.13.1"
 okhttp = "4.12.0"
-retrofit = "2.9.0"
+retrofit = "3.0.0"
 roomRuntime = "2.7.1"
 runtimeAndroid = "1.8.2"
 googleGmsGoogleServices = "4.4.2"
 firebaseDatabase = "21.0.0"
-firebaseFirestore = "25.0.0"
-firebaseBom = "32.8.1"
+firebaseFirestore = "25.1.4"
+firebaseBom = "33.15.0"
 
 
 [libraries]
@@ -65,8 +65,6 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 #Networking-Libs
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-
-
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -9,7 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -17,7 +19,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RichText(text: String, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.onSecondary) {
+fun RichText(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    style: TextStyle = MaterialTheme.typography.bodyMedium
+) {
     val annotatedText = remember(text) {
         buildAnnotatedString {
             val lines = text.lines()
@@ -42,9 +49,10 @@ fun RichText(text: String, modifier: Modifier = Modifier, color: Color = Materia
 
     Text(
         text = annotatedText,
-        style = MaterialTheme.typography.bodyMedium,
+        style = style,
         color = color,
         textAlign = TextAlign.Justify,
+        fontFamily = FontFamily.Serif,
         modifier = modifier.padding(start = 8.dp, top = 2.dp)
     )
 }

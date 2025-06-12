@@ -16,6 +16,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.dark.neuroverse.compose.screens.setup.intro.IntroScreen
 import com.dark.neuroverse.compose.screens.setup.permissions.PermissionScreen
 import com.dark.neuroverse.compose.screens.setup.plugins.InstallPluginsScreen
@@ -44,8 +47,31 @@ fun SetUpScreen(paddingValues: PaddingValues) {
             )
     }, label = "setup") {
         when (it) {
-            true -> PermissionScreen(paddingValues)
+            true -> SetUpCompose(paddingValues)
             false -> IntroScreen(showLoading)
+        }
+    }
+}
+
+@Composable
+fun SetUpCompose(paddingValues: PaddingValues){
+
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = "install_plugins"
+    ) {
+        composable("install_plugins") {
+            InstallPluginsScreen(paddingValues = paddingValues) {
+                navController.navigate("permission_screen")
+            }
+        }
+
+        composable("permission_screen") {
+            PermissionScreen(paddingValues){
+
+            }
         }
     }
 }
