@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.dark.neuroverse.compose.screens.setup.intro.IntroScreen
+import com.dark.neuroverse.compose.screens.setup.permissions.PermissionScreen
 import com.dark.neuroverse.compose.screens.setup.plugins.InstallPluginsScreen
 import kotlinx.coroutines.delay
 
@@ -24,7 +25,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun SetUpScreen(paddingValues: PaddingValues) {
     var showLoading by remember { mutableStateOf(false) }
-    var closeLoadingScreen by remember { mutableStateOf(false) }
+    var closeLoadingScreen by remember { mutableStateOf(true) }
     val animDuration = 500
 
     LaunchedEffect(Unit) {
@@ -43,7 +44,7 @@ fun SetUpScreen(paddingValues: PaddingValues) {
             )
     }, label = "setup") {
         when (it) {
-            true -> InstallPluginsScreen()
+            true -> PermissionScreen(paddingValues)
             false -> IntroScreen(showLoading)
         }
     }

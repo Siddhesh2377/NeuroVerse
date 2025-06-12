@@ -1,4 +1,4 @@
-package com.dark.neuroverse.compose.screens.setup.plugins
+package com.dark.neuroverse.compose.screens.setup.permissions
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -31,9 +32,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dark.neuroverse.compose.components.CheckBX
+import com.dark.neuroverse.ui.theme.Warning
+import com.dark.neuroverse.ui.theme.onWarning
 
 @Composable
-fun InstallPluginsScreen(paddingValues: PaddingValues) {
+fun PermissionScreen(paddingValues: PaddingValues) {
     Column(
         Modifier
             .fillMaxSize()
@@ -43,7 +46,7 @@ fun InstallPluginsScreen(paddingValues: PaddingValues) {
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Text(
-            "Plugins",
+            "Final Setup..!",
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.displayMedium,
             fontFamily = FontFamily.Serif,
@@ -51,7 +54,7 @@ fun InstallPluginsScreen(paddingValues: PaddingValues) {
         )
 
         Text(
-            "Select What You Want \n & What Not...",
+            "thank you for patiently \nwaiting....!",
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.headlineSmall,
             fontFamily = FontFamily.Serif,
@@ -63,23 +66,27 @@ fun InstallPluginsScreen(paddingValues: PaddingValues) {
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         color = MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(16.dp)
                     )
-                    .clip(RoundedCornerShape(16.dp))
-            ){
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(5) {
-                        PluginCard()
-                    }
-                }
+                    .clip(RoundedCornerShape(16.dp)),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                PermissionCard(
+                    "Accessibility Permission",
+                    "Accessibility Permission is Optional but, not giving it Android may Block Some of your Favourite Plugin",
+                    true
+                )
+
+                PermissionCard(
+                    "Set As Default Assistant",
+                    "This Is Also Option If You don’t want to change your default assistant then you can just use NeuroV within the NeuroV app or assign a HW Button ",
+                    false
+                )
             }
 
         }
@@ -111,10 +118,9 @@ fun InstallPluginsScreen(paddingValues: PaddingValues) {
     }
 }
 
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PluginCard() {
+fun PermissionCard(title: String, description: String, isSkipAble: Boolean = false) {
     var checked by remember { mutableStateOf(false) }
 
     Card(
@@ -131,7 +137,7 @@ fun PluginCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "List Applications",
+                    title,
                     modifier = Modifier
                         .weight(1f),
                     style = MaterialTheme.typography.headlineMedium,
@@ -140,19 +146,48 @@ fun PluginCard() {
 
                 CheckBX(
                     checked,
+                    isReadOnly = true,
                     onCheckStateChange = { checked = it },
                 )
             }
 
             Text(
-                dummyPara,
+                description,
                 style = MaterialTheme.typography.titleMediumEmphasized,
                 fontFamily = FontFamily.Serif,
             )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                if (isSkipAble)
+                    Button(
+                        onClick = {
+
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = onWarning,
+                            contentColor = Warning
+                        ),
+                        modifier = Modifier.width(120.dp)
+                    ) {
+                        Text("Skip", fontFamily = FontFamily.Serif)
+                    }
+
+                Spacer(Modifier.width(10.dp))
+
+                Button(
+                    onClick = {
+                        checked = true
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    modifier = Modifier.width(120.dp)
+                ) {
+                    Text("Grant", fontFamily = FontFamily.Serif)
+                }
+            }
         }
     }
 }
 
-
-const val dummyPara =
-    "Android apps encompass a vast range of functionalities, from popular social media platforms like Facebook, Instagram, and TikTok to essential utilities like Google Maps and Google Chrome."
