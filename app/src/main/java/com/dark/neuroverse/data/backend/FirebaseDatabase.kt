@@ -10,6 +10,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -40,13 +41,13 @@ fun downloadAndInstall(
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
-    scope.launch {
+    scope.async {
         val alreadyInstalled = db.pluginDao().getPluginByName(plugin.name) != null
         if (alreadyInstalled) {
             withContext(Dispatchers.Main) {
                 onFailure?.invoke("⚠️ Plugin \"${plugin.name}\" is already installed.")
             }
-            return@launch
+            return@async
         }
 
         try {

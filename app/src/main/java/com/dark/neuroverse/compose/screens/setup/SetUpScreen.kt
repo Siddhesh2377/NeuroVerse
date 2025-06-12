@@ -1,5 +1,6 @@
 package com.dark.neuroverse.compose.screens.setup
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -15,27 +16,45 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.dark.neuroverse.activities.MainActivity
 import com.dark.neuroverse.compose.screens.setup.intro.IntroScreen
 import com.dark.neuroverse.compose.screens.setup.permissions.PermissionScreen
 import com.dark.neuroverse.compose.screens.setup.plugins.InstallPluginsScreen
+import com.dark.neuroverse.data.backend.downloadAndInstall
+import com.dark.neuroverse.utils.UserPrefs
+import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
+import com.dark.plugin_runtime.engine.PluginManager
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun SetUpScreen(paddingValues: PaddingValues) {
     var showLoading by remember { mutableStateOf(false) }
-    var closeLoadingScreen by remember { mutableStateOf(true) }
+    var closeLoadingScreen by remember { mutableStateOf(false) }
     val animDuration = 500
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         delay(700)
         showLoading = true
         delay(2700)
-        closeLoadingScreen = true
+
+        UserPrefs.isOnboardingComplete(context).collect {
+            if (it) {
+                Intent(context, MainActivity::class.java).apply {
+                    context.startActivity(this)
+                }
+            } else {
+                closeLoadingScreen = true
+            }
+        }
     }
 
     AnimatedContent(closeLoadingScreen, transitionSpec = {
@@ -54,23 +73,35 @@ fun SetUpScreen(paddingValues: PaddingValues) {
 }
 
 @Composable
-fun SetUpCompose(paddingValues: PaddingValues){
+fun SetUpCompose(paddingValues: PaddingValues) {
 
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val db = PluginInstalledDatabase.getInstance(context)
+    val scope = rememberCoroutineScope()
 
     NavHost(
         navController = navController,
         startDestination = "install_plugins"
     ) {
         composable("install_plugins") {
-            InstallPluginsScreen(paddingValues = paddingValues) {
+            InstallPluginsScreen(paddingValues = paddingValues) { pluginList ->
+                pluginList.forEach { plugins ->
+                    downloadAndInstall(plugins, context, db, onFailure = {}, onSuccess = {})
+                }
                 navController.navigate("permission_screen")
             }
         }
 
         composable("permission_screen") {
-            PermissionScreen(paddingValues){
-
+            PermissionScreen(paddingValues) {
+                PluginManager.init(context)
+                scope.launch {
+                    UserPrefs.setOnboardingComplete(context, true)
+                    Intent(context, MainActivity::class.java).apply {
+                        context.startActivity(this)
+                    }
+                }
             }
         }
     }

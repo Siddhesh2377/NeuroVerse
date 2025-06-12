@@ -15,6 +15,8 @@ object UserPrefs {
     private val ARTIFICIAL_GRENDEL_UNDERSTANDING_KEY =
         booleanPreferencesKey("artificial_grendel_understanding")
 
+    private val IS_ONBOARDING_COMPLETE_KEY = booleanPreferencesKey("is_onboarding_complete")
+
     fun isTermsAccepted(context: Context): Flow<Boolean> {
         return context.dataStore.data.map { it[TERMS_ACCEPTED_KEY] == true }
     }
@@ -37,5 +39,13 @@ object UserPrefs {
 
     suspend fun setAGU(context: Context, enabled: Boolean) {
         context.dataStore.edit { it[ARTIFICIAL_GRENDEL_UNDERSTANDING_KEY] = enabled }
+    }
+
+    fun isOnboardingComplete(context: Context): Flow<Boolean> {
+        return context.dataStore.data.map { it[IS_ONBOARDING_COMPLETE_KEY] == true }
+    }
+
+    suspend fun setOnboardingComplete(context: Context, complete: Boolean) {
+        context.dataStore.edit { it[IS_ONBOARDING_COMPLETE_KEY] = complete }
     }
 }
