@@ -34,10 +34,9 @@ fun GlitchTypingText(
         }
     }
 
-    Text(
+    RichText(
         text = "$displayText▌",
         style = MaterialTheme.typography.bodyLarge,
-        fontFamily = FontFamily.Serif,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
     )

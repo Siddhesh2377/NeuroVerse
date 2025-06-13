@@ -59,7 +59,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dark.neuroverse.R
+import com.dark.neuroverse.compose.components.GlitchTypingText
 import com.dark.neuroverse.compose.components.RichText
+import com.dark.neuroverse.neurov.mcp.chat.viewModels.ChattingViewModel
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.utils.UserPrefs
 import com.dark.plugin_runtime.engine.PluginManager
@@ -74,6 +76,8 @@ enum class Action {
 
 @Composable
 fun NeuroVScreen(onClickOutside: () -> Unit) {
+
+    val viewModel = remember { ChattingViewModel() }  // or use hiltViewModel() if using Hilt
 
     var action by remember { mutableStateOf(Action.NONE) }
 
@@ -103,8 +107,8 @@ fun NeuroVScreen(onClickOutside: () -> Unit) {
                 })
                 Body(action, onClick = {
                     action = it
-                })
-                BottomBar(action)
+                }, viewModel)   // pass viewModel here
+                BottomBar(action, viewModel)  // pass viewModel here too
             }
         }
     }
@@ -168,7 +172,7 @@ fun HeaderCard(action: Action, onBack: () -> Unit = {}) {
 }
 
 @Composable
-fun Body(action: Action, onClick: (action: Action) -> Unit) {
+fun Body(action: Action, onClick: (action: Action) -> Unit, viewModel: ChattingViewModel) {
 
     AnimatedContent(action, transitionSpec = {
         (fadeIn()).togetherWith(fadeOut())
@@ -207,21 +211,21 @@ fun Body(action: Action, onClick: (action: Action) -> Unit) {
                 }
             }
 
-            Action.WRITE -> ResultComposable()
-            Action.SPEAK -> ResultComposable()
+            Action.WRITE -> ResultComposable(viewModel)
+            Action.SPEAK -> ResultComposable(viewModel)
         }
     }
 }
 
 @Composable
-fun BottomBar(action: Action) {
+fun BottomBar(action: Action, viewModel: ChattingViewModel) {
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp))
             .background(cardColor), verticalAlignment = Alignment.CenterVertically
     ) {
-        ActionBox(action)
+        ActionBox(action, viewModel)
     }
 }
 
@@ -336,8 +340,22 @@ fun BottomNavButton(text: String, selected: Boolean) {
 }
 
 @Composable
-fun ResultComposable() {
+fun ResultComposable(viewModel: ChattingViewModel) {
     val scrollState = rememberScrollState()
+
+    val text = """
+    **AI stands for Artificial Intelligence.**
+    
+    **In simple terms:**
+    👉 AI is the ability of a machine or software to perform tasks that normally require human intelligence.
+    
+    **These tasks can include:**
+    - understanding language (like I’m doing right now)
+    - recognizing images
+    - making decisions
+    - solving problems
+    - learning from experience (like how humans learn over time)
+""".trimIndent()
 
     Box(
         modifier = Modifier
@@ -347,28 +365,31 @@ fun ResultComposable() {
             .background(cardColor)
             .verticalScroll(scrollState)
     ) {
-        RichText(
-            text = "**AI stands for Artificial Intelligence.**\n" +
-                    "\n" +
-                    "**In simple terms:**\n" +
-                    "\uD83D\uDC49 AI is the ability of a machine or software to perform tasks that normally require human intelligence.\n" +
-                    "\n" +
-                    "**These tasks can include:**\n" +
-                    "- understanding language (like I’m doing right now)\n" +
-                    "- recognizing images\n" +
-                    "- making decisions\n" +
-                    "- solving problems\n" +
-                    "- learning from experience (like how humans learn over time)",
-            color = Color.Black,
-            modifier = Modifier.padding(8.dp)
-        )
+      //  viewModel.messages.forEach { msg ->
+//            RichText(
+//                text = ,
+//                color = Color.Black,
+//                modifier = Modifier.padding(8.dp)
+//            )
+
+
+
+        GlitchTypingText(
+            finalText = text,
+                delayPerChar = 1L,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 12.dp)
+            )
+
+       // }
+
     }
 }
 
-
 @Composable
-fun ActionBox(action: Action) {
-    var text by remember { mutableStateOf("") }
+fun ActionBox(action: Action, viewModel: ChattingViewModel) {
+    var text by remember { mutableStateOf("Hello") }
     var isAguChecked by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -391,7 +412,7 @@ fun ActionBox(action: Action) {
         modifier = Modifier
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         AnimatedContent(action, transitionSpec = {
             (fadeIn()).togetherWith(fadeOut())
@@ -410,7 +431,7 @@ fun ActionBox(action: Action) {
                         BasicTextField(
                             modifier = Modifier.weight(1f),
                             value = text,
-                            onValueChange = { text = it },
+                            onValueChange = { txt-> text = txt },
                             decorationBox = { innerTextField ->
                                 if (text.isEmpty()) {
                                     Text(
@@ -433,12 +454,19 @@ fun ActionBox(action: Action) {
                         Icon(
                             painterResource(R.drawable.mic),
                             contentDescription = "Speak",
-                            modifier = Modifier.clickable {})
+                            modifier = Modifier.clickable {
+
+                            })
 
                         Icon(
                             Icons.AutoMirrored.Outlined.Send,
                             contentDescription = "Send",
-                            modifier = Modifier.clickable {})
+                            modifier = Modifier.clickable {
+                                if (text.isNotBlank()) {
+                                    viewModel.sendMessage(text)
+                                    text = ""  // clear input after sending
+                                }
+                            })
                     }
                 }
 
@@ -458,7 +486,7 @@ fun ActionBox(action: Action) {
                         BasicTextField(
                             modifier = Modifier.weight(1f),
                             value = text,
-                            onValueChange = { text = it },
+                            onValueChange = { txt-> text = txt },
                             decorationBox = { innerTextField ->
                                 if (text.isEmpty()) {
                                     Text(

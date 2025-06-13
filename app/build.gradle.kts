@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.firebase.database)
     // Navigation Compose (NOT Multiplatform)
     implementation("androidx.navigation:navigation-compose:2.9.0")
-// Accompanist Navigation Animation
+    // Accompanist Navigation Animation
     implementation("com.google.accompanist:accompanist-navigation-animation:0.36.0")
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)
