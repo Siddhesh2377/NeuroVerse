@@ -9,6 +9,8 @@
 
 ---
 
+https://github.com/user-attachments/assets/5aab8f3b-40de-4407-a11a-15dd9471776f
+
 ## Features
 
 * **Natural Language Understanding** – OpenRouter-powered prompt parsing into structured JSON commands.
@@ -42,9 +44,7 @@ NeuroVerse introduces a **dynamic plugin framework** that allows third-party dev
   <img src="https://github.com/user-attachments/assets/ac8559d6-77ef-4bf5-83d0-a3b6be90a905" alt="Preview 4" width="200"/>
 </p>
 
-
-https://github.com/user-attachments/assets/5aab8f3b-40de-4407-a11a-15dd9471776f
-
+https://github.com/user-attachments/assets/546037b8-05f1-43d4-bc24-15ae2caf4bb0
 
 ---
 
