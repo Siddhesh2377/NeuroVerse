@@ -60,7 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dark.neuroverse.R
 import com.dark.neuroverse.compose.components.GlitchTypingText
-import com.dark.neuroverse.compose.components.RichText
+import com.dark.neuroverse.neurov.mcp.chat.models.ROLE
 import com.dark.neuroverse.neurov.mcp.chat.viewModels.ChattingViewModel
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.utils.UserPrefs
@@ -343,7 +343,7 @@ fun BottomNavButton(text: String, selected: Boolean) {
 fun ResultComposable(viewModel: ChattingViewModel) {
     val scrollState = rememberScrollState()
 
-    val text = """
+    """
     **AI stands for Artificial Intelligence.**
     
     **In simple terms:**
@@ -365,7 +365,7 @@ fun ResultComposable(viewModel: ChattingViewModel) {
             .background(cardColor)
             .verticalScroll(scrollState)
     ) {
-      //  viewModel.messages.forEach { msg ->
+        viewModel.messages.forEach { msg ->
 //            RichText(
 //                text = ,
 //                color = Color.Black,
@@ -373,16 +373,15 @@ fun ResultComposable(viewModel: ChattingViewModel) {
 //            )
 
 
-
-        GlitchTypingText(
-            finalText = text,
+            GlitchTypingText(
+                finalText = if (msg.role == ROLE.SYSTEM) msg.content else "",
                 delayPerChar = 1L,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp, vertical = 12.dp)
             )
 
-       // }
+        }
 
     }
 }
@@ -431,7 +430,7 @@ fun ActionBox(action: Action, viewModel: ChattingViewModel) {
                         BasicTextField(
                             modifier = Modifier.weight(1f),
                             value = text,
-                            onValueChange = { txt-> text = txt },
+                            onValueChange = { txt -> text = txt },
                             decorationBox = { innerTextField ->
                                 if (text.isEmpty()) {
                                     Text(
@@ -486,7 +485,7 @@ fun ActionBox(action: Action, viewModel: ChattingViewModel) {
                         BasicTextField(
                             modifier = Modifier.weight(1f),
                             value = text,
-                            onValueChange = { txt-> text = txt },
+                            onValueChange = { txt -> text = txt },
                             decorationBox = { innerTextField ->
                                 if (text.isEmpty()) {
                                     Text(
