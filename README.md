@@ -99,7 +99,16 @@ Contributions are welcome! If you're interested in plugin development, core func
 
 ---
 
-## 📄 License
+## 🔒 Licensing & Commercial Use
+
+```
+NeuroVerse is free for **personal and non-commercial use only**.
+
+🚫 You are **not allowed** to use this code in any commercial project, app, website, or SaaS product without a **paid license**.
+
+💼 Want to use NeuroVerse commercially?
+Email me at siddheshsonar2377@gmail.com to request a license and pricing.
+```
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
@@ -132,6 +141,7 @@ Please contact: siddheshsonar2377@gmail.com
 
 Full license details: https://creativecommons.org/licenses/by-nc/4.0/
 ```
+
 
 ---
 
