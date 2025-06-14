@@ -1,6 +1,7 @@
 package com.dark.neuroverse.compose.screens.assistant
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -71,7 +72,7 @@ import com.dark.plugin_runtime.model.PluginModel
 private val cardColor = Color(0xFFEFEFEF)
 
 enum class Action {
-    NONE, WRITE, SPEAK
+    NONE, WRITE, SPEAK, PLUGINS
 }
 
 @Composable
@@ -105,10 +106,11 @@ fun NeuroVScreen(onClickOutside: () -> Unit) {
                 HeaderCard(action, onBack = {
                     action = Action.NONE
                 })
-                Body(action, onClick = {
-                    action = it
-                }, viewModel)   // pass viewModel here
-                BottomBar(action, viewModel)  // pass viewModel here too
+                Body(action, onClick = { action = it }, viewModel)   // pass viewModel here
+                BottomBar(
+                    action,
+                    viewModel,
+                    onPluginSelected = { action = Action.PLUGINS })  // pass viewModel here too
             }
         }
     }
@@ -211,21 +213,30 @@ fun Body(action: Action, onClick: (action: Action) -> Unit, viewModel: ChattingV
                 }
             }
 
-            Action.WRITE -> ResultComposable(viewModel)
-            Action.SPEAK -> ResultComposable(viewModel)
+            Action.WRITE -> ResultComposable(viewModel, action)
+            Action.SPEAK -> {
+                //ResultComposable(viewModel)
+                Toast.makeText(LocalContext.current, "Coming Soon....!", Toast.LENGTH_SHORT).show()
+            }
+
+            Action.PLUGINS -> ResultComposable(viewModel, action)
         }
     }
 }
 
 @Composable
-fun BottomBar(action: Action, viewModel: ChattingViewModel) {
+fun BottomBar(
+    action: Action,
+    viewModel: ChattingViewModel,
+    onPluginSelected: (PluginModel) -> Unit
+) {
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(6.dp, 6.dp, 12.dp, 12.dp))
             .background(cardColor), verticalAlignment = Alignment.CenterVertically
     ) {
-        ActionBox(action, viewModel)
+        ActionBox(action, viewModel, onPluginSelected)
     }
 }
 
@@ -322,9 +333,10 @@ fun QuickActionCard(
 }
 
 @Composable
-fun BottomNavButton(text: String, selected: Boolean) {
+fun BottomNavButton(text: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
+            .clickable { onClick() }
             .padding(vertical = 12.dp)
             .clip(RoundedCornerShape(6.dp))
             .background(if (selected) Color.Black else Color.White)
@@ -340,7 +352,7 @@ fun BottomNavButton(text: String, selected: Boolean) {
 }
 
 @Composable
-fun ResultComposable(viewModel: ChattingViewModel) {
+fun ResultComposable(viewModel: ChattingViewModel, action: Action) {
     val scrollState = rememberScrollState()
 
     """
@@ -356,16 +368,21 @@ fun ResultComposable(viewModel: ChattingViewModel) {
     - solving problems
     - learning from experience (like how humans learn over time)
 """.trimIndent()
+    when(action){
+        Action.PLUGINS -> {
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(cardColor)
-            .verticalScroll(scrollState)
-    ) {
-        viewModel.messages.forEach { msg ->
+        }
+
+        else ->{
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(cardColor)
+                    .verticalScroll(scrollState)
+            ) {
+                viewModel.messages.forEach { msg ->
 //            RichText(
 //                text = ,
 //                color = Color.Black,
@@ -373,21 +390,25 @@ fun ResultComposable(viewModel: ChattingViewModel) {
 //            )
 
 
-            GlitchTypingText(
-                finalText = if (msg.role == ROLE.SYSTEM) msg.content else "",
-                delayPerChar = 1L,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 12.dp)
-            )
-
+                    GlitchTypingText(
+                        finalText = if (msg.role == ROLE.SYSTEM) msg.content else "",
+                        delayPerChar = 1L,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 12.dp)
+                    )
+                }
+            }
         }
-
     }
 }
 
 @Composable
-fun ActionBox(action: Action, viewModel: ChattingViewModel) {
+fun ActionBox(
+    action: Action,
+    viewModel: ChattingViewModel,
+    onPluginSelected: (PluginModel) -> Unit
+) {
     var text by remember { mutableStateOf("Hello") }
     var isAguChecked by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -470,83 +491,92 @@ fun ActionBox(action: Action, viewModel: ChattingViewModel) {
                 }
 
                 Action.SPEAK -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.mic),
-                            contentDescription = "Speak",
-                            modifier = Modifier.clickable {})
-
-                        BasicTextField(
-                            modifier = Modifier.weight(1f),
-                            value = text,
-                            onValueChange = { txt -> text = txt },
-                            decorationBox = { innerTextField ->
-                                if (text.isEmpty()) {
-                                    Text(
-                                        text = "Write Message Here...",
-                                        style = TextStyle(fontSize = 16.sp, color = Color.Gray)
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        )
-
-                        Icon(
-                            painterResource(R.drawable.brain),
-                            contentDescription = "AGU",
-                            tint = animColor.value,
-                            modifier = Modifier.clickable {
-                                isAguChecked = !isAguChecked
-                            })
-                    }
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(16.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+//                    ) {
+//                        Icon(
+//                            painterResource(R.drawable.mic),
+//                            contentDescription = "Speak",
+//                            modifier = Modifier.clickable {})
+//
+//                        BasicTextField(
+//                            modifier = Modifier.weight(1f),
+//                            value = text,
+//                            onValueChange = { txt -> text = txt },
+//                            decorationBox = { innerTextField ->
+//                                if (text.isEmpty()) {
+//                                    Text(
+//                                        text = "Write Message Here...",
+//                                        style = TextStyle(fontSize = 16.sp, color = Color.Gray)
+//                                    )
+//                                }
+//                                innerTextField()
+//                            }
+//                        )
+//
+//                        Icon(
+//                            painterResource(R.drawable.brain),
+//                            contentDescription = "AGU",
+//                            tint = animColor.value,
+//                            modifier = Modifier.clickable {
+//                                isAguChecked = !isAguChecked
+//                            })
+//                    }
                 }
 
                 Action.NONE -> {
+                    DefaultActionCompose(onPluginSelected)
+                }
 
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .background(cardColor), verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Action.PLUGINS -> {
+                    DefaultActionCompose(onPluginSelected)
+                }
+            }
+        }
+    }
+}
 
-                        val pluginList = remember { mutableStateOf<List<PluginModel>>(emptyList()) }
+@Composable
+fun DefaultActionCompose(onPluginSelected: (PluginModel) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(cardColor), verticalAlignment = Alignment.CenterVertically
+    ) {
 
-                        PluginManager.updateInstalledPlugins()
+        val pluginList = remember { mutableStateOf<List<PluginModel>>(emptyList()) }
 
-                        LaunchedEffect(Unit) {
-                            PluginManager.InstalledPlugins.collect { plugins ->
-                                Log.d("MyService", "Loaded services: $plugins")
-                                pluginList.value = plugins
-                            }
-                        }
+        PluginManager.updateInstalledPlugins()
 
+        LaunchedEffect(Unit) {
+            PluginManager.InstalledPlugins.collect { plugins ->
+                Log.d("MyService", "Loaded services: $plugins")
+                pluginList.value = plugins
+            }
+        }
 
-                        Text(
-                            "Plugins Actions",
-                            modifier = Modifier.padding(horizontal = 24.dp),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.Black,
-                            fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Bold
-                        )
+        Text(
+            "Plugins Actions",
+            modifier = Modifier.padding(horizontal = 24.dp),
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.Black,
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.Bold
+        )
 
-                        VerticalDivider(modifier = Modifier.height(50.dp), thickness = 2.dp)
+        VerticalDivider(modifier = Modifier.height(50.dp), thickness = 2.dp)
 
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(start = 10.dp)
-                        ) {
-                            items(pluginList.value) { it ->
-                                BottomNavButton(it.pluginName, selected = false)
-                            }
-                        }
-                    }
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(start = 10.dp)
+        ) {
+            items(pluginList.value) { it ->
+                BottomNavButton(it.pluginName, selected = false) {
+                    onPluginSelected(it)
                 }
             }
         }

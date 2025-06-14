@@ -26,8 +26,9 @@ class MainActivity : ComponentActivity() {
             NeuroVerseTheme {
                 Scaffold { _ ->
                     NeuroVScreen(onClickOutside = {
-
+                        PluginManager.loadSTTPlugins()
                     })
+
                    // HomeScreen(it)
                     // runPluginInSandbox(this, "List Applications Plugin")
                 }

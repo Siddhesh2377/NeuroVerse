@@ -25,8 +25,6 @@ interface PluginDao {
     @Query("SELECT * FROM InstalledPluginModel WHERE autoStart = true")
     suspend fun getAutoRunningPlugins(): List<PluginModel>
 
-
-
     @Query("SELECT pluginPath FROM InstalledPluginModel WHERE pluginName = :name")
     suspend fun getPluginFolderByName(name: String): String
 
