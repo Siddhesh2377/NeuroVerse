@@ -99,39 +99,47 @@ Contributions are welcome! If you're interested in plugin development, core func
 
 ---
 
-## 📄 License
-
-[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-
-**Licensed under the Creative Commons Attribution-NonCommercial 4.0**
+## 🔒 Licensing & Commercial Use
 
 ```
+NeuroVerse is licensed for **personal and non-commercial use only**.
+
+🚫 You may **not** use this code in any commercial product, app, service, or organization  
+without a paid commercial license.
+
+💼 Want to use NeuroVerse commercially?
+📬 Contact me at: siddheshsonar2377@gmail.com to request a license and pricing.
+
+Unauthorized commercial use is prohibited and may result in legal action.
+```
+
+![license: custom](https://img.shields.io/badge/license-custom-blue)
+
+```
+Custom License – Personal & Non-Commercial Use Only
+
 Copyright (c) 2025 Siddhesh Sonar
 
-This software and associated content are protected under the Creative Commons Attribution-NonCommercial 4.0 International License.
+This software is provided for personal, educational, and non-commercial use only.  
+You may view, study, and modify the code for non-commercial purposes.
 
-You are permitted to:
+🚫 Commercial use of this software in any form is **strictly prohibited** unless  
+you have obtained a commercial license from the author.
 
-- Share — Copy and redistribute the material in any medium or format.
-- Adapt — Remix, transform, and build upon the material for non-commercial purposes.
+Commercial use includes but is not limited to:
+- Integrating the code into commercial products, apps, or services
+- Selling, sublicensing, or offering this software for a fee
+- Using the software in business environments, SaaS platforms, or monetized tools
 
-Under the following conditions:
+📬 To obtain a commercial license, contact:
+    siddheshsonar2377@gmail.com
 
-- Attribution — You must provide appropriate credit, include a link to the license, and indicate if changes were made. Attribution must not suggest endorsement by the original author.
-- NonCommercial — You may not use the material for commercial purposes, including but not limited to: selling, licensing, bundling, or integrating into paid products or services, without explicit written permission.
+Unauthorized commercial use of this code may result in legal action.
 
-Patent and Usage Disclaimer:
-All rights related to any novel techniques, inventions, or patents implemented or implied by this software are reserved by the author. Unauthorized use of patented techniques, especially for commercial gain, is strictly prohibited.
+This software is provided "as is" without any warranties or guarantees.
 
-If you wish to:
-✔ Use this software commercially
-✔ Obtain a commercial license
-✔ Inquire about patents or innovations
-
-Please contact: siddheshsonar2377@gmail.com
-
-Full license details: https://creativecommons.org/licenses/by-nc/4.0/
 ```
+
 
 ---
 
