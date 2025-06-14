@@ -5,7 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.graphics.Color
 import com.dark.neuroverse.compose.screens.assistant.NeuroVScreen
+import com.dark.neuroverse.compose.screens.temp.MainScreen
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.plugin_runtime.engine.PluginManager
@@ -24,10 +26,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NeuroVerseTheme {
-                Scaffold { _ ->
-                    NeuroVScreen(onClickOutside = {
-                        PluginManager.loadSTTPlugins()
-                    })
+                Scaffold(containerColor = Color(0xFFEEEEEE)) { it ->
+//                    NeuroVScreen(onClickOutside = {
+//                        PluginManager.loadSTTPlugins()
+//                    })
+
+                    MainScreen(it)
 
                    // HomeScreen(it)
                     // runPluginInSandbox(this, "List Applications Plugin")

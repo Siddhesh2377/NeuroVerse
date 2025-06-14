@@ -14,6 +14,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.GenericFontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -23,7 +24,9 @@ fun RichText(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
-    style: TextStyle = MaterialTheme.typography.bodyMedium
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    fontFamily: GenericFontFamily = FontFamily.Serif,
+    fontWeight: FontWeight = FontWeight.Light
 ) {
     val annotatedText = remember(text) {
         buildAnnotatedString {
@@ -52,8 +55,8 @@ fun RichText(
         style = style,
         color = color,
         textAlign = TextAlign.Justify,
-        fontFamily = FontFamily.Serif,
-        modifier = modifier.padding(start = 8.dp, top = 2.dp)
+        fontFamily = fontFamily,
+        fontWeight = fontWeight,
     )
 }
 
@@ -65,7 +68,7 @@ private fun AnnotatedString.Builder.appendStyledSegment(line: String) {
             if (index % 2 == 0) {
                 append(part)
             } else {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                     append(part)
                 }
             }

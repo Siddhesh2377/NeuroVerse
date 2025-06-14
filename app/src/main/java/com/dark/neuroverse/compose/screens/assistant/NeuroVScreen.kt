@@ -1,6 +1,8 @@
 package com.dark.neuroverse.compose.screens.assistant
 
 import android.util.Log
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -24,6 +26,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -59,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.dark.neuroverse.R
 import com.dark.neuroverse.compose.components.GlitchTypingText
 import com.dark.neuroverse.neurov.mcp.chat.models.ROLE
@@ -214,6 +218,7 @@ fun Body(action: Action, onClick: (action: Action) -> Unit, viewModel: ChattingV
             }
 
             Action.WRITE -> ResultComposable(viewModel, action)
+
             Action.SPEAK -> {
                 //ResultComposable(viewModel)
                 Toast.makeText(LocalContext.current, "Coming Soon....!", Toast.LENGTH_SHORT).show()
@@ -355,6 +360,8 @@ fun BottomNavButton(text: String, selected: Boolean, onClick: () -> Unit) {
 fun ResultComposable(viewModel: ChattingViewModel, action: Action) {
     val scrollState = rememberScrollState()
 
+    var pluginView by remember { mutableStateOf<ViewGroup?>(null) }
+
     """
     **AI stands for Artificial Intelligence.**
     
@@ -368,12 +375,59 @@ fun ResultComposable(viewModel: ChattingViewModel, action: Action) {
     - solving problems
     - learning from experience (like how humans learn over time)
 """.trimIndent()
-    when(action){
+    when (action) {
         Action.PLUGINS -> {
+            pluginView?.let { currentView ->
 
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                        .padding(24.dp)
+                ) {
+                    AndroidView(
+                        factory = { context ->
+                            FrameLayout(context).apply {
+                                layoutParams = FrameLayout.LayoutParams(
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                                    FrameLayout.LayoutParams.MATCH_PARENT
+                                )
+                                addView(currentView)
+                            }
+                        },
+                        update = { frameLayout ->
+                            frameLayout.removeAllViews()
+                            frameLayout.addView(currentView)
+                            frameLayout.invalidate()
+                        }
+                    )
+                }
+
+            } ?: run {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(cardColor)
+                        .verticalScroll(scrollState)
+                ) {
+//                    LazyColumn {
+//                        items(logs){
+//                            GlitchTypingText(
+//                                finalText = ,
+//                                delayPerChar = 1L,
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(horizontal = 8.dp, vertical = 12.dp)
+//                            )
+//                        }
+//                    }
+                }
+            }
         }
 
-        else ->{
+        else -> {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
