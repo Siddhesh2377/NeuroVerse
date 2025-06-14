@@ -133,8 +133,9 @@ fun MainCards() {
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
     val columnHeight = screenWidthDp - 100.dp
-    val cardSpace = 14.dp
-    val (edge, center) = Pair(25.dp, 8.dp)
+    val cardSpace = 8.dp
+    val (edge, center) = Pair(25.dp, 10.dp)
+    val iconModifier = Modifier.size(64.dp)
 
     val animatedAxis1 by animateDpAsState(
         animationSpec = tween(
@@ -176,7 +177,13 @@ fun MainCards() {
                 shape = RoundedCornerShape(edge, center, center, center),
                 value = animatedAxis1
             ) {
-                Text("Hello")
+                Icon(painterResource(R.drawable.activity), "", iconModifier)
+                Text(
+                    "Your Activity",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Light
+                )
             }
 
             AnimatedCards(
@@ -188,7 +195,13 @@ fun MainCards() {
                 shape = RoundedCornerShape(center, edge, center, center),
                 value = animatedAxis2
             ) {
-                Text("Hello")
+                Icon(painterResource(R.drawable.movies), "", iconModifier)
+                Text(
+                    "Fav Movies",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Light
+                )
             }
         }
 
@@ -205,7 +218,13 @@ fun MainCards() {
                 shape = RoundedCornerShape(center, center, center, edge),
                 value = animatedAxis2
             ) {
-                Text("Hello")
+                Icon(painterResource(R.drawable.apps), "", iconModifier)
+                Text(
+                    "Fav Apps",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Light
+                )
             }
 
             AnimatedCards(
@@ -217,7 +236,13 @@ fun MainCards() {
                 shape = RoundedCornerShape(center, center, edge, center),
                 value = animatedAxis1
             ) {
-                Text("Hello")
+                Icon(painterResource(R.drawable.neurov), "", iconModifier)
+                Text(
+                    "Your Chat’s",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Light
+                )
             }
         }
     }
