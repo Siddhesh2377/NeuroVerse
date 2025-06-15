@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.graphics.Color
 import com.dark.neuroverse.compose.screens.assistant.NeuroVScreen
@@ -21,12 +22,11 @@ class MainActivity : ComponentActivity() {
         PluginRouter.init(applicationContext)
         PluginManager.init(applicationContext)
         FirebaseApp.initializeApp(this)
-        val db = Firebase.firestore
 
         enableEdgeToEdge()
         setContent {
             NeuroVerseTheme {
-                Scaffold(containerColor = Color(0xFFEEEEEE)) { it ->
+                Scaffold(containerColor = MaterialTheme.colorScheme.surface) { it ->
 //                    NeuroVScreen(onClickOutside = {
 //                        PluginManager.loadSTTPlugins()
 //                    })

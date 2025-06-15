@@ -9,7 +9,10 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,9 +23,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.Chat
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.twotone.AccountTree
+import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.Chat
+import androidx.compose.material.icons.twotone.Explore
+import androidx.compose.material.icons.twotone.Newspaper
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -38,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -45,7 +59,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import com.dark.neuroverse.R
+import com.dark.neuroverse.compose.components.CollapsableButton
 import com.dark.neuroverse.compose.components.RichText
 import com.dark.neuroverse.ui.theme.White
 
@@ -56,10 +72,15 @@ fun MainScreen(paddingValues: PaddingValues) {
             .fillMaxSize()
             .padding(paddingValues)
             .padding(horizontal = 34.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Header()
 
         MainCards()
+
+        Spacer(Modifier.weight(1f))
+
+        BottomBar()
     }
 }
 
@@ -71,7 +92,7 @@ fun Header() {
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 500, easing = LinearEasing),
+            animation = tween(durationMillis = 550, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         )
     )
@@ -119,6 +140,38 @@ fun Header() {
             )
 
             Icon(painterResource(R.drawable.shield), "protected data")
+        }
+    }
+}
+
+@Composable
+fun BottomBar() {
+
+    Card(
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+        elevation = CardDefaults.cardElevation(defaultElevation = 30.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp)
+        ) {
+            Text(
+                "Neuro V",
+                modifier = Modifier.padding(horizontal = 24.dp),
+                style = MaterialTheme.typography.headlineMedium,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold
+            )
+
+            CollapsableButton(true, text = "New Chat", icon = Icons.TwoTone.Add) {
+
+            }
+
+            CollapsableButton(false, text = "EXPLORE", icon = Icons.TwoTone.Explore) {
+
+            }
         }
     }
 }
@@ -220,7 +273,7 @@ fun MainCards() {
             ) {
                 Icon(painterResource(R.drawable.apps), "", iconModifier)
                 Text(
-                    "Fav Apps",
+                    "Favourite Apps",
                     style = MaterialTheme.typography.titleLarge,
                     fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Light
@@ -248,7 +301,6 @@ fun MainCards() {
     }
 }
 
-
 @Composable
 fun AnimatedCards(
     onClick: () -> Unit,
@@ -263,7 +315,7 @@ fun AnimatedCards(
         },
         shape = shape,
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(defaultElevation = value)
     ) {
         Column(

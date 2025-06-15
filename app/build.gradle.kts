@@ -62,6 +62,8 @@ dependencies {
     implementation(project(":plugin-api"))
     implementation(project(":plugin-runtime"))
 
+    implementation("androidx.biometric:biometric:1.2.0-alpha05")
+
     //DATABASE
     implementation(libs.androidx.room.runtime)
     implementation(platform(libs.firebase.bom))

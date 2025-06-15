@@ -26,7 +26,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NeuroVerse">
         <activity
-            android:name=".activities.SetUpActivity"
+            android:name=".activities.BiometricActivity"
             android:exported="true"
             android:theme="@style/Theme.NeuroVerse">
             <intent-filter>
@@ -36,6 +36,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activities.SetUpActivity"
+            android:exported="true"
+            android:theme="@style/Theme.NeuroVerse" />
 
         <activity
             android:name=".activities.MainActivity"
