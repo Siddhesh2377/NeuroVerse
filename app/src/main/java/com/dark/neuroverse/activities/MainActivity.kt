@@ -32,7 +32,6 @@ class MainActivity : ComponentActivity() {
 //                    NeuroVScreen(onClickOutside = {
 //                        PluginManager.loadSTTPlugins()
 //                    })
-
                     ChatScreen(it)
                     //STTScreen(it)
 
