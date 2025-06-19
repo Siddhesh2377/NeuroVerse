@@ -65,6 +65,7 @@ import com.k2fsa.sherpa.onnx.ASRHelper.createOfflineRecognizer
 import com.k2fsa.sherpa.onnx.ASRHelper.createVad
 import com.k2fsa.sherpa.onnx.ASRHelper.recordAndRecognize
 import com.k2fsa.sherpa.onnx.ASRHelper.stopRecording
+import io.shubham0204.smollm.SmollHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,7 +76,12 @@ import kotlinx.coroutines.flow.StateFlow
 fun ChatScreen(paddingValues: PaddingValues) {
     val (hasPermission, requestPermission) = rememberAudioPermissionState()
     val context = LocalContext.current
-
+    LaunchedEffect(Unit) {
+        SmollHelper.loadModel(
+            "test",
+            "/storage/emulated/0/Download/smollm2-360m-instruct-q8_0.gguf"
+        )
+    }
     AnimatedContent(
         targetState = hasPermission.value,
         label = "Permission Switch"
@@ -131,7 +137,6 @@ fun ChatScreen(paddingValues: PaddingValues) {
         }
     }
 }
-
 
 @Composable
 fun Header() {
@@ -190,6 +195,7 @@ fun Header() {
 @Composable
 fun Body(modifier: Modifier) {
     val text by UserInput.text.collectAsState()
+    val speak by UserInput.speck.collectAsState()
 
     Card(
         modifier = modifier.padding(bottom = 6.dp),
@@ -203,7 +209,7 @@ fun Body(modifier: Modifier) {
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             if (text.isNotEmpty())
-                ChattingAiCompose(text) {
+                ChattingAiCompose(text, speak) {
                     Log.d("Response", it)
                 }
         }
@@ -215,7 +221,7 @@ fun Body(modifier: Modifier) {
 fun BottomBar() {
     val context = LocalContext.current
     var resultText by remember { mutableStateOf("") }
-    var text by remember { mutableStateOf("") }
+    val text by UserInput.text.collectAsState()
 
     val vad = remember { createVad(context) }
     val recognizer = remember { createOfflineRecognizer(context) }
@@ -227,6 +233,8 @@ fun BottomBar() {
     LaunchedEffect(startAudio) {
         if (startAudio) {
             audioRecord = createAudioRecord()
+            resultText = ""
+            UserInput.updateSpeak(true)
             scope = recordAndRecognize(
                 audioRecord = audioRecord!!, // now safely unwrapped
                 vad = vad,
@@ -234,8 +242,8 @@ fun BottomBar() {
             ) { r ->
                 resultText += r
                 Log.d("Audio", "Result: $r")
-                text = resultText
                 UserInput.updateText(resultText)
+                UserInput.updateSpeak(false)
             }
         } else {
             scope?.let {
@@ -243,6 +251,7 @@ fun BottomBar() {
                 audioRecord?.let { record ->
                     stopRecording(it, record)
                 }
+                UserInput.updateSpeak(false)
                 it.cancel()
                 scope = null
                 audioRecord = null
@@ -282,7 +291,7 @@ fun BottomBar() {
                 ) {
                     BasicTextField(
                         value = text,
-                        onValueChange = { text = it },
+                        onValueChange = {  UserInput.updateText(it) },
                         singleLine = false,
                         decorationBox = { innerTextField ->
                             if (text.isEmpty()) {
@@ -309,9 +318,7 @@ fun BottomBar() {
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-
                     AnimatedContent(startAudio, label = "Audio Animated") { it ->
-
                         when (it) {
                             true -> {
                                 val (a, r, g, b) = listOf(
@@ -332,22 +339,17 @@ fun BottomBar() {
                             }
 
                             false -> {
-
-
                                 Icon(
                                     imageVector = Icons.Default.Mic,
                                     contentDescription = "Mic"
                                 )
                             }
                         }
-
                     }
-
                 }
 
                 IconButton(
                     onClick = {
-
 
                     }, colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -383,7 +385,14 @@ object UserInput {
     private val _textState = MutableStateFlow("Initial text")
     val text: StateFlow<String> = _textState
 
+    private val _speakState = MutableStateFlow(false)
+    val speck: StateFlow<Boolean> = _speakState
+
     fun updateText(newText: String) {
         _textState.value = newText
+    }
+
+    fun updateSpeak(newSpeak: Boolean){
+        _speakState.value = newSpeak
     }
 }

@@ -23,12 +23,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun ChattingAiCompose(userInput: String, onResponse: (String) -> Unit) {
+fun ChattingAiCompose(userInput: String, speaking: Boolean, onResponse: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     var response by remember { mutableStateOf("") }
 
-    LaunchedEffect(userInput) {
+    LaunchedEffect(speaking) {
+        if (speaking) return@LaunchedEffect
         coroutineScope.launch(Dispatchers.IO) {
+
+            SmollHelper.loadModel(
+                "test",
+                "/storage/emulated/0/Download/smollm2-360m-instruct-q8_0.gguf"
+            )
+
             SmollHelper.generateStream(userInput).collect { partial ->
                 withContext(Dispatchers.Main) {
                     response = partial

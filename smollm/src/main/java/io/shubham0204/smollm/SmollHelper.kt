@@ -94,8 +94,6 @@ object SmollHelper {
 //            file.outputStream().use { outputStream ->
 //                inputStream.copyTo(outputStream)
 //            }
-
-            Log.d("loadModel", "loadModel: $uri")
             loadModel(name, "/storage/emulated/0/Download/smollm2-360m-instruct-q8_0.gguf")
         }
     }
