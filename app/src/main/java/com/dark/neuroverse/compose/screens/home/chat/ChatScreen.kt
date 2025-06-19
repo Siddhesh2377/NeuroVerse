@@ -9,13 +9,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Send
@@ -44,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +58,7 @@ import androidx.core.graphics.component1
 import com.dark.neuroverse.R
 import com.dark.neuroverse.compose.components.RichText
 import com.dark.neuroverse.utils.rememberAudioPermissionState
+import com.dark.neuroverse.utils.vibrate
 import com.k2fsa.sherpa.onnx.ASRHelper.createAudioRecord
 import com.k2fsa.sherpa.onnx.ASRHelper.createOfflineRecognizer
 import com.k2fsa.sherpa.onnx.ASRHelper.createVad
@@ -74,21 +81,32 @@ fun ChatScreen(paddingValues: PaddingValues) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Microphone permission required to use this feature.")
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = {
-                        requestPermission
-                        Log.d("Permission", "Requesting permission")
-                    }) {
+                    Button(onClick = { requestPermission() }) {
                         Text("Grant Permission")
                     }
                 }
             }
         } else {
+
+
+            val isKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+
+            var modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = if (!isKeyboardOpen) paddingValues.calculateBottomPadding() else 8.dp,
+                    start = 24.dp,
+                    end = 24.dp
+                )
+
+            if (isKeyboardOpen) {
+                modifier = modifier.imePadding()
+            }
+
             Column(
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 24.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = modifier,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Header()
@@ -157,8 +175,9 @@ fun Header() {
 @Composable
 fun Body(modifier: Modifier) {
     Card(
-        modifier = modifier.padding(bottom = 24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
+        modifier = modifier.padding(bottom = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+        shape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp, bottomEnd = 8.dp, bottomStart = 8.dp),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
@@ -213,12 +232,13 @@ fun BottomBar() {
         horizontalArrangement = Arrangement.Center
     ) {
         Card(
-            shape = CircleShape,
+            shape = RoundedCornerShape(topEnd = 8.dp, topStart = 8.dp, bottomEnd = 24.dp, bottomStart = 24.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 34.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Row(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(vertical = 4.dp)
                     .padding(start = 16.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -226,7 +246,7 @@ fun BottomBar() {
             ) {
                 Box(
                     modifier = Modifier
-                        .widthIn(min = 100.dp, max = 250.dp)
+                        .weight(1f)
                         .padding( 8.dp)
                 ) {
                     BasicTextField(
@@ -248,10 +268,10 @@ fun BottomBar() {
                     )
                 }
 
-
                 IconButton(
                     onClick = {
                         startAudio = !startAudio
+                        vibrate(context)
                     },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -313,9 +333,7 @@ fun BottomBar() {
                                 )
                             }
                         }
-
                     }
-
                 }
             }
         }

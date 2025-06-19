@@ -63,6 +63,9 @@ dependencies {
     implementation(project(":plugin-runtime"))
    // implementation(project(":smollm"))
 
+    implementation("com.google.accompanist:accompanist-insets:0.30.1")
+    implementation("com.google.accompanist:accompanist-insets-ui:0.36.0")
+
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
 
     //DATABASE
