@@ -1,21 +1,17 @@
 package com.dark.neuroverse.activities
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.core.view.WindowCompat
-import com.dark.neuroverse.compose.screens.home.chat.ChatScreen
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.plugin_runtime.engine.PluginManager
 import com.google.firebase.FirebaseApp
-import androidx.core.net.toUri
+import com.dark.neuroverse.compose.screens.temp.NeuronDemoScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -34,7 +30,10 @@ class MainActivity : ComponentActivity() {
 //                    NeuroVScreen(onClickOutside = {
 //                        PluginManager.loadSTTPlugins()
 //                    })
-                        ChatScreen(it)
+
+                    NeuronDemoScreen(it)
+
+                       // ChatScreen(it)
                         //STTScreen(it)
 
                         // HomeScreen(it)

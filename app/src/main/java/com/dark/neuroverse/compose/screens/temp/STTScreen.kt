@@ -54,15 +54,8 @@ fun STTScreen(paddingValues: PaddingValues) {
     LaunchedEffect(Unit) {
         val config = getOfflineTtsConfig(
             modelDir = "vits-vctk",
-            modelName = "vits-vctk.onnx",
-            acousticModelName = "",
-            vocoder = "",
-            voices = "",
+            modelName = "vits-vctk.int8.onnx",
             lexicon = "lexicon.txt",
-            dataDir = "",
-            dictDir = "",
-            ruleFsts = "",
-            ruleFars = "",
         )
         tts = OfflineTts(assetManager, config)
         val sampleRate = tts!!.sampleRate()

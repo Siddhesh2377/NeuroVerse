@@ -56,7 +56,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.dark.neuroverse.R
 import com.dark.neuroverse.compose.components.RichText
-import com.dark.neuroverse.compose.screens.temp.ChattingAiCompose
 import com.dark.neuroverse.utils.openAppSettings
 import com.dark.neuroverse.utils.rememberAudioPermissionState
 import com.dark.neuroverse.utils.vibrate
@@ -208,10 +207,7 @@ fun Body(modifier: Modifier) {
         ),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            if (text.isNotEmpty())
-                ChattingAiCompose(text, speak) {
-                    Log.d("Response", it)
-                }
+
         }
     }
 }

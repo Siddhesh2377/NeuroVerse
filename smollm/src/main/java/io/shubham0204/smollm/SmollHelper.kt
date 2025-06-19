@@ -85,19 +85,6 @@ object SmollHelper {
         }
     }
 
-    suspend fun loadFromUri(context: Context, name: String, uri: android.net.Uri) {
-        withContext(Dispatchers.IO) {
-//            val inputStream = context.contentResolver.openInputStream(uri)
-//                ?: throw IllegalArgumentException("Cannot open input stream from URI: $uri")
-//
-//            val file = File(context.cacheDir, "model_$name.gguf")
-//            file.outputStream().use { outputStream ->
-//                inputStream.copyTo(outputStream)
-//            }
-            loadModel(name, "/storage/emulated/0/Download/smollm2-360m-instruct-q8_0.gguf")
-        }
-    }
-
     fun generateStream(input: String): Flow<String> = flow {
         val model = getActiveModelOrThrow()
         model.addUserMessage(input)
