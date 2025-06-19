@@ -29,9 +29,10 @@ fun rememberAudioPermissionState(): Pair<State<Boolean>, () -> Unit> {
     }
 
 
-    val requestPermission = {
-        launcher.launch(Manifest.permission.RECORD_AUDIO)
+    val requestPermission = remember(launcher) {
+        { launcher.launch(Manifest.permission.RECORD_AUDIO) }
     }
+
 
     // Only auto-request once on first render if not granted
     LaunchedEffect(Unit) {

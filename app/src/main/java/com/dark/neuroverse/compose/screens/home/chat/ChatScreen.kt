@@ -1,5 +1,7 @@
 package com.dark.neuroverse.compose.screens.home.chat
 
+import android.Manifest
+import android.app.Activity
 import android.media.AudioRecord
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
@@ -15,11 +17,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -40,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,16 +47,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.component1
+import androidx.core.app.ActivityCompat
 import com.dark.neuroverse.R
 import com.dark.neuroverse.compose.components.RichText
+import com.dark.neuroverse.compose.screens.temp.ChattingAiCompose
+import com.dark.neuroverse.utils.openAppSettings
 import com.dark.neuroverse.utils.rememberAudioPermissionState
 import com.dark.neuroverse.utils.vibrate
 import com.k2fsa.sherpa.onnx.ASRHelper.createAudioRecord
@@ -66,11 +67,14 @@ import com.k2fsa.sherpa.onnx.ASRHelper.recordAndRecognize
 import com.k2fsa.sherpa.onnx.ASRHelper.stopRecording
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 
 @Composable
 fun ChatScreen(paddingValues: PaddingValues) {
     val (hasPermission, requestPermission) = rememberAudioPermissionState()
+    val context = LocalContext.current
 
     AnimatedContent(
         targetState = hasPermission.value,
@@ -79,10 +83,21 @@ fun ChatScreen(paddingValues: PaddingValues) {
         if (!granted) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val showRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+                        (context as Activity),
+                        Manifest.permission.RECORD_AUDIO
+                    )
+
                     Text("Microphone permission required to use this feature.")
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { requestPermission() }) {
-                        Text("Grant Permission")
+                    Button(onClick = {
+                        if (showRationale) {
+                            requestPermission()
+                        } else {
+                            openAppSettings(context)
+                        }
+                    }) {
+                        Text(if (showRationale) "Grant Permission" else "Open Settings")
                     }
                 }
             }
@@ -174,13 +189,23 @@ fun Header() {
 
 @Composable
 fun Body(modifier: Modifier) {
+    val text by UserInput.text.collectAsState()
+
     Card(
         modifier = modifier.padding(bottom = 6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-        shape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp, bottomEnd = 8.dp, bottomStart = 8.dp),
+        shape = RoundedCornerShape(
+            topEnd = 24.dp,
+            topStart = 24.dp,
+            bottomEnd = 8.dp,
+            bottomStart = 8.dp
+        ),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-
+            if (text.isNotEmpty())
+                ChattingAiCompose(text) {
+                    Log.d("Response", it)
+                }
         }
     }
 }
@@ -210,6 +235,7 @@ fun BottomBar() {
                 resultText += r
                 Log.d("Audio", "Result: $r")
                 text = resultText
+                UserInput.updateText(resultText)
             }
         } else {
             scope?.let {
@@ -232,7 +258,12 @@ fun BottomBar() {
         horizontalArrangement = Arrangement.Center
     ) {
         Card(
-            shape = RoundedCornerShape(topEnd = 8.dp, topStart = 8.dp, bottomEnd = 24.dp, bottomStart = 24.dp),
+            shape = RoundedCornerShape(
+                topEnd = 8.dp,
+                topStart = 8.dp,
+                bottomEnd = 24.dp,
+                bottomStart = 24.dp
+            ),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
@@ -247,7 +278,7 @@ fun BottomBar() {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .padding( 8.dp)
+                        .padding(8.dp)
                 ) {
                     BasicTextField(
                         value = text,
@@ -290,7 +321,14 @@ fun BottomBar() {
                                     Color.Blue.alpha
                                 )
 
-                                LoadingIndicator(color = LoadingIndicatorDefaults.containedIndicatorColor.copy(a, r, g, b))
+                                LoadingIndicator(
+                                    color = LoadingIndicatorDefaults.containedIndicatorColor.copy(
+                                        a,
+                                        r,
+                                        g,
+                                        b
+                                    )
+                                )
                             }
 
                             false -> {
@@ -311,7 +349,6 @@ fun BottomBar() {
                     onClick = {
 
 
-
                     }, colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -326,6 +363,7 @@ fun BottomBar() {
                                     contentDescription = "Audio"
                                 )
                             }
+
                             false -> {
                                 Icon(
                                     imageVector = Icons.Default.GraphicEq,
@@ -337,5 +375,15 @@ fun BottomBar() {
                 }
             }
         }
+    }
+}
+
+
+object UserInput {
+    private val _textState = MutableStateFlow("Initial text")
+    val text: StateFlow<String> = _textState
+
+    fun updateText(newText: String) {
+        _textState.value = newText
     }
 }

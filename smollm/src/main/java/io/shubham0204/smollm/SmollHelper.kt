@@ -1,65 +1,136 @@
 package io.shubham0204.smollm
 
+import android.content.Context
 import io.shubham0204.smollm.SmolLM.InferenceParams
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 object SmollHelper {
-    private var smollLM: SmolLM? = null
+    private var activeModelName: String? = null
+    private val modelInstances = ConcurrentHashMap<String, SmolLM>()
 
-    suspend fun init(modelPath: String, contextLength: Long = 512L) {
+    suspend fun loadModel(
+        name: String,
+        modelPath: String,
+        contextLength: Long = 512L,
+        forceReload: Boolean = false
+    ) = withContext(Dispatchers.IO) {
         val file = File(modelPath)
         require(file.exists()) { "Model file does not exist at path: $modelPath" }
 
-        smollLM?.close()
-        smollLM = SmolLM()
+        // If already loaded, skip unless forceReload is true
+        if (!forceReload && modelInstances.containsKey(name)) {
+            activeModelName = name
+            return@withContext
+        }
 
+        // Unload existing model if needed
+        unloadActiveModel()
+
+        val model = SmolLM()
         try {
-            smollLM?.load(
+            model.load(
                 modelPath,
-                InferenceParams(contextSize = contextLength)
+                InferenceParams(
+                    contextSize = contextLength,
+                    useMmap = true,
+                    useMlock = false,
+                    numThreads = Runtime.getRuntime().availableProcessors() / 2 // optimal for mobile
+                )
             )
-            smollLM?.addSystemPrompt(
+
+            model.addSystemPrompt(
                 """
-    You are an AI assistant designed to generate only valid JSON commands for Android app automation.
-    Based on the user's natural language input, respond with a single JSON object using one of the following formats:
+                You are an AI assistant designed to generate only valid JSON commands for Android app automation.
+                Based on the user's natural language input, respond with a single JSON object using one of the following formats:
 
-    {"action": "open_app", "data": "App Name"}
-    {"action": "check_if_exists", "data": "App Name"}
-    {"action": "list_installed_apps", "data": ""}
+                {"action": "open_app", "data": "App Name"}
+                {"action": "check_if_exists", "data": "App Name"}
+                {"action": "list_installed_apps", "data": ""}
 
-    Strict Rules:
-    - Respond only with a JSON object, no explanation, no extra text.
-    - Select the correct action type and populate "data" appropriately.
-    - Do not include nulls, comments, or placeholders.
+                {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "enum": ["open_app", "check_if_exists", "list_installed_apps"]
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["action", "data"]
+                }
 
-    Your output should always be a single clean JSON object matching one of the formats above.
-    """.trimIndent()
+                Strict Rules:
+                - Respond only with a JSON object, no explanation, no extra text.
+                - Select the correct action type and populate "data" appropriately.
+                - Do not include nulls, comments, or placeholders.
+                """.trimIndent()
             )
+
+            modelInstances[name] = model
+            activeModelName = name
 
         } catch (e: Exception) {
+            model.close()
             e.printStackTrace()
-            throw e // or show error to user
+            throw e
+        }
+    }
+
+    suspend fun loadFromUri(context: Context, name: String, uri: android.net.Uri) {
+        withContext(Dispatchers.IO) {
+//            val inputStream = context.contentResolver.openInputStream(uri)
+//                ?: throw IllegalArgumentException("Cannot open input stream from URI: $uri")
+//
+//            val file = File(context.cacheDir, "model_$name.gguf")
+//            file.outputStream().use { outputStream ->
+//                inputStream.copyTo(outputStream)
+//            }
+
+            Log.d("loadModel", "loadModel: $uri")
+            loadModel(name, "/storage/emulated/0/Download/smollm2-360m-instruct-q8_0.gguf")
         }
     }
 
     fun generateStream(input: String): Flow<String> = flow {
-        smollLM?.addUserMessage(input)
-        val outputFlow = smollLM?.getResponseAsFlow(input) ?: flow {}
-        smollLM?.addAssistantMessage("") // You'll append to this later
-
+        val model = getActiveModelOrThrow()
+        model.addUserMessage(input)
+        val outputFlow = model.getResponseAsFlow(input)
         var fullResponse = ""
         outputFlow.collect { piece ->
             fullResponse += piece
-            emit(fullResponse) // emit partial updates
+            emit(fullResponse)
         }
-
-        smollLM?.addAssistantMessage(fullResponse) // Save final output
+        model.addAssistantMessage(fullResponse)
     }
 
-    fun close() {
-        smollLM?.close()
-        smollLM = null
+    fun unloadActiveModel() {
+        activeModelName?.let { name ->
+            modelInstances[name]?.close()
+            modelInstances.remove(name)
+        }
+        activeModelName = null
+    }
+
+    fun unloadAllModels() {
+        modelInstances.forEach { (_, model) -> model.close() }
+        modelInstances.clear()
+        activeModelName = null
+    }
+
+    fun listLoadedModels(): List<String> = modelInstances.keys.toList()
+
+    private fun getActiveModelOrThrow(): SmolLM {
+        return modelInstances[activeModelName]
+            ?: error("No active model loaded. Use loadModel() before inference.")
     }
 }
+
