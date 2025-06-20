@@ -2,6 +2,7 @@ package com.dark.neuroverse
 
 import android.app.Application
 import android.util.Log
+import com.dark.ai_manager.ai.local.Neuron
 import com.dark.ai_manager.ai.local.STT
 import com.dark.ai_manager.ai.local.TTS
 import com.dark.plugin_runtime.engine.PluginManager
@@ -17,6 +18,7 @@ class NeuroVerseApplication : Application(), CoroutineScope by CoroutineScope(Su
 
         async {
             STT.initialize(applicationContext)
+            Neuron.init()
             TTS.initialize(applicationContext)
         }
     }

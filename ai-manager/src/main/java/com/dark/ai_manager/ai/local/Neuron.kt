@@ -27,13 +27,13 @@ object Neuron {
     private val nvScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun init(onLoaded: (() -> Unit)? = null) {
-        val defaultModel = NeuronVariant.NVGeneral
+        val defaultModel = NeuronVariant.NVRouter
         loadModel(defaultModel, onLoaded = onLoaded)
     }
 
     fun loadModel(
         variant: NeuronVariant,
-        contextLength: Long = 512L,
+        contextLength: Long = 1212L,
         forceReload: Boolean = false,
         onLoaded: (() -> Unit)? = null // Optional callback
     ) {
@@ -58,8 +58,8 @@ object Neuron {
                     InferenceParams(
                         contextSize = contextLength,
                         useMmap = true,
-                        useMlock = false,
-                        numThreads = Runtime.getRuntime().availableProcessors() / 2 // optimal for mobile
+                        useMlock = true,
+                        numThreads = Runtime.getRuntime().availableProcessors() - 2 // optimal for mobile
                     )
                 )
 

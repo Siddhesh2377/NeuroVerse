@@ -48,6 +48,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,12 +66,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.dark.neuroverse.R
 import com.dark.neuroverse.compose.components.GlitchTypingText
+import com.dark.neuroverse.neurov.mcp.ai.PluginRouter.process
 import com.dark.neuroverse.neurov.mcp.chat.models.ROLE
 import com.dark.neuroverse.neurov.mcp.chat.viewModels.ChattingViewModel
 import com.dark.neuroverse.ui.theme.NeuroVerseTheme
 import com.dark.neuroverse.utils.UserPrefs
 import com.dark.plugin_runtime.engine.PluginManager
 import com.dark.plugin_runtime.model.PluginModel
+import kotlinx.coroutines.launch
 
 
 private val cardColor = Color(0xFFEFEFEF)
@@ -362,19 +365,6 @@ fun ResultComposable(viewModel: ChattingViewModel, action: Action) {
 
     var pluginView by remember { mutableStateOf<ViewGroup?>(null) }
 
-    """
-    **AI stands for Artificial Intelligence.**
-    
-    **In simple terms:**
-    👉 AI is the ability of a machine or software to perform tasks that normally require human intelligence.
-    
-    **These tasks can include:**
-    - understanding language (like I’m doing right now)
-    - recognizing images
-    - making decisions
-    - solving problems
-    - learning from experience (like how humans learn over time)
-""".trimIndent()
     when (action) {
         Action.PLUGINS -> {
             pluginView?.let { currentView ->
@@ -463,9 +453,10 @@ fun ActionBox(
     viewModel: ChattingViewModel,
     onPluginSelected: (PluginModel) -> Unit
 ) {
-    var text by remember { mutableStateOf("Hello") }
+    var text by remember { mutableStateOf("Open Youtube") }
     var isAguChecked by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         UserPrefs.isAGU(context).collect {
@@ -537,7 +528,11 @@ fun ActionBox(
                             contentDescription = "Send",
                             modifier = Modifier.clickable {
                                 if (text.isNotBlank()) {
-                                    viewModel.sendMessage(text)
+                                    //viewModel.sendMessage(text)
+                                    scope.launch {
+                                        val response = process(text)
+                                    }
+
                                     text = ""  // clear input after sending
                                 }
                             })

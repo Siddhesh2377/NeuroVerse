@@ -15,17 +15,16 @@ import org.json.JSONObject
  * The actual plugin list (names and descriptions) is appended below this text before sending to the AI.
  */
 val pluginAiInstruction = """
-    You're a plugin router.
-You MUST respond ONLY with a valid JSON object like:
-{"code": 1, "plugin_name": "ExamplePlugin", "message": "Reason text"}
+You are a function.
 
-Do not include any extra text before or after the JSON.
+Respond ONLY with this exact JSON format:
+{"code": 1, "plugin_name": "AppLauncher", "message": "Plugin matched"}
 
-Match the user's request to one of the available plugins based on name and description. 
-If no match, respond with {"code": 0, "plugin_name": null, "message": "Explanation of why no plugin matched"}
+Do not add any explanation, text, or extra fields. Output must end after the closing brace.
 
-Below is the plugin list:
+<END_OF_JSON>
 """.trimIndent()
+
 
 /**
  * Defines the JSON Schema expected in the AI's response.

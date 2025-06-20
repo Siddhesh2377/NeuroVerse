@@ -1,5 +1,7 @@
 package com.dark.neuroverse.compose.screens.setup.permissions
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,16 +26,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dark.neuroverse.compose.components.CheckBX
 import com.dark.neuroverse.ui.theme.Warning
 import com.dark.neuroverse.ui.theme.onWarning
+import com.dark.neuroverse.utils.UserPrefs
+import kotlinx.coroutines.launch
 
 @Composable
 fun PermissionScreen(
@@ -42,6 +48,8 @@ fun PermissionScreen(
 ) {
     var assPermission by remember { mutableStateOf(false) }
     var setAsDefault by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val enabled = assPermission && setAsDefault
 
@@ -89,16 +97,33 @@ fun PermissionScreen(
                     description = "Accessibility Permission is Optional but, not giving it Android may Block Some of your Favourite Plugin",
                     checked = assPermission,
                     onCheckedChange = { assPermission = it },
-                    isSkipAble = true
-                )
+                    isSkipAble = true,
+                    onSkipClick = {
+
+                    }
+                ){
+                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                    context.startActivity(intent)
+                }
 
                 PermissionCard(
                     title = "Set As Default Assistant",
                     description = "This Is Also Option If You don’t want to change your default assistant then you can just use NeuroV within the NeuroV app or assign a HW Button",
                     checked = setAsDefault,
                     onCheckedChange = { setAsDefault = it },
-                    isSkipAble = true
-                )
+                    isSkipAble = true,
+                    onSkipClick = {
+                        scope.launch {
+                            UserPrefs.setAssistantEnabled(context, false)
+                        }
+                    }
+                ){
+                    val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+                    context.startActivity(intent)
+                    scope.launch {
+                        UserPrefs.setAssistantEnabled(context, false)
+                    }
+                }
             }
         }
 
@@ -137,7 +162,9 @@ fun PermissionCard(
     description: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    isSkipAble: Boolean = false
+    isSkipAble: Boolean = false,
+    onSkipClick: () -> Unit,
+    onGrantClick: () -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(6.dp),
@@ -177,6 +204,7 @@ fun PermissionCard(
                     Button(
                         onClick = {
                             onCheckedChange(true)
+                            onSkipClick()
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = onWarning,
@@ -193,6 +221,7 @@ fun PermissionCard(
                 Button(
                     onClick = {
                         onCheckedChange(true)
+                        onGrantClick()
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
