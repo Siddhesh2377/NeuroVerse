@@ -14,16 +14,6 @@ import org.json.JSONObject
  *
  * The actual plugin list (names and descriptions) is appended below this text before sending to the AI.
  */
-val pluginAiInstruction = """
-You are a function.
-
-Respond ONLY with this exact JSON format:
-{"code": 1, "plugin_name": "AppLauncher", "message": "Plugin matched"}
-
-Do not add any explanation, text, or extra fields. Output must end after the closing brace.
-
-<END_OF_JSON>
-""".trimIndent()
 
 
 /**

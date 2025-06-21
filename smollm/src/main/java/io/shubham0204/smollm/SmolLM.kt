@@ -137,8 +137,17 @@ class SmolLM {
      */
     object DefaultInferenceParams {
         val contextSize: Long = 1024L
-        val chatTemplate: String =
-            "{% for message in messages %}{% if loop.first and messages[0]['role'] != 'system' %}{{ '<|im_start|>system You are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|> ' }}{% endif %}{{'<|im_start|>' + message['role'] + ' ' + message['content'] + '<|im_end|>' + ' '}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant ' }}{% endif %}"
+        val chatTemplate: String = """
+{% set instruction = "You are a JSON bot.\n\nRules:\n- Output only valid JSON.\n- No text, comments, or newlines.\n- Always start with `{` and end with `}`.\n- No nulls or missing fields.\n- Respond quickly.\n\nTask: Match a user query to a plugin from a list.\n\nIf matched:\n{\"code\":1,\"plugin_name\":\"<name>\",\"message\":\"Plugin matched\"}\n\nElse:\n{\"code\":0,\"plugin_name\":null,\"message\":\"No plugin matched\"}" %}
+{{ '<|im_start|>system ' + instruction + '<|im_end|>\n' }}
+{% for message in messages %}
+{{ '<|im_start|>' + message['role'] + ' ' + message['content'] + '<|im_end|>\n' }}
+{% endfor %}
+{% if add_generation_prompt %}
+{{ '<|im_start|>assistant ' }}
+{% endif %}
+""".trimIndent()
+
     }
 
     /**
@@ -167,10 +176,10 @@ class SmolLM {
     data class InferenceParams(
         val minP: Float = 0.01f,
         val temperature: Float = 1.0f,
-        val storeChats: Boolean = true,
+        val storeChats: Boolean = false,
         val contextSize: Long? = null,
         val chatTemplate: String? = null,
-        val numThreads: Int = 4,
+        val numThreads: Int = 6,
         val useMmap: Boolean = true,
         val useMlock: Boolean = false,
     )
@@ -197,9 +206,11 @@ class SmolLM {
         val ggufReader = GGUFReader()
         ggufReader.load(modelPath)  // <- Don't wrap again
 
-        val modelContextSize = ggufReader.getContextSize() ?: DefaultInferenceParams.contextSize
-        val modelChatTemplate = ggufReader.getChatTemplate() ?: DefaultInferenceParams.chatTemplate
+        Log.e("MODEL", "Model KA Size - > ${ggufReader.getContextSize()}")
 
+        val modelContextSize = ggufReader.getContextSize() ?: DefaultInferenceParams.contextSize
+        val modelChatTemplate =  DefaultInferenceParams.chatTemplate
+        //ggufReader.getChatTemplate() ?:
         nativePtr = loadModel(
             modelPath,
             params.minP,
@@ -281,6 +292,7 @@ class SmolLM {
             verifyHandle()
             startCompletion(nativePtr, query)
             var piece = completionLoop(nativePtr)
+            Log.d("SmolLM", "Response: $piece")
             while (piece != "[EOG]") {
                 emit(piece)
                 piece = completionLoop(nativePtr)

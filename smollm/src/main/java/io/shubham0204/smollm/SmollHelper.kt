@@ -18,7 +18,7 @@ object SmollHelper {
     suspend fun loadModel(
         name: String,
         modelPath: String,
-        contextLength: Long = 512L,
+        contextLength: Long = 1024L,
         forceReload: Boolean = false
     ) = withContext(Dispatchers.IO) {
         val file = File(modelPath)
@@ -41,6 +41,7 @@ object SmollHelper {
                     contextSize = contextLength,
                     useMmap = true,
                     useMlock = false,
+                    storeChats = false,
                     numThreads = Runtime.getRuntime().availableProcessors() / 2 // optimal for mobile
                 )
             )

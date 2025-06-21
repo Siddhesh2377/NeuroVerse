@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.ViewGroup
 import com.dark.ai_manager.ai.api_calls.AiRouter
 import com.dark.ai_manager.ai.local.Neuron
+import com.dark.ai_manager.ai.types.NeuronVariant
 import com.dark.plugin_runtime.database.installed_plugin_db.PluginInstalledDatabase
 import com.dark.plugin_runtime.engine.PluginManager
 import kotlinx.coroutines.CoroutineScope
@@ -65,22 +66,39 @@ object PluginRouter {
     suspend fun process(prompt: String): ViewGroup? {
         return suspendCancellableCoroutine { cont ->
 
-            val pluginListText = buildString {
-                if (!::pluginDescriptions.isInitialized || pluginDescriptions.isEmpty()) {
-                    append("No plugins available.\n")
-                } else {
-                    pluginDescriptions.forEachIndexed { index, (name, description) ->
-                        append("${index + 1}. $name: $description\n")
-                        Log.d("PluginRouter", "Plugin: $name, Description: $description")
+            val toolCallInput = JSONObject().apply {
+                put("query", prompt)
+                put("plugins_list", JSONArray().apply {
+                    pluginDescriptions.forEach { (name, desc) ->
+                        put(JSONObject().apply {
+                            put("name", name)
+                            put("description", desc)
+                        })
                     }
+                })
+            }.toString()
+
+            scope.launch {
+                val response = Neuron.generateResponseBlocking(toolCallInput)
+                    .substringBefore("<|im_end|>") // Clean trailing tokens if present
+                    .trim()
+
+                Log.d("PluginRouter", "AI Tool Response: $response")
+
+                // Optionally parse the JSON if you want structured access
+                try {
+                    val json = JSONObject(response)
+                    val pluginName = json.getString("plugin")
+                    val reason = json.getString("reason")
+                    Log.d("PluginRouter", "Selected plugin: $pluginName\nReason: $reason")
+                } catch (e: Exception) {
+                    Log.e("PluginRouter", "Invalid JSON: $response", e)
                 }
             }
 
-            scope.launch {
-                val response = Neuron.generateResponse("$pluginAiInstruction Plugin List -> $pluginListText  User prompt ->  $prompt".trimIndent())
 
-                Log.d("PluginRouter", "AI Response: $response")
-            }
+
+
 
 //
 //            AiRouter.processRequest(

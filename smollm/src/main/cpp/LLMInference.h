@@ -26,7 +26,7 @@ class LLMInference {
     std::string _response;
     std::string _cacheResponseTokens;
     // whether to cache previous messages in `_messages`
-    bool _storeChats;
+    bool _storeChats = false;
 
     // response generation metrics
     int64_t _responseGenerationTime = 0;
