@@ -21,7 +21,6 @@ class NeuroVService : VoiceInteractionService(), CoroutineScope by CoroutineScop
 
         async {
             STT.initialize(applicationContext)
-            Neuron.init()
             TTS.initialize(applicationContext)
         }
     }

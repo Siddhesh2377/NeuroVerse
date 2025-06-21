@@ -29,6 +29,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.dark.ai_manager.ai.local.Neuron
 import com.dark.neuroverse.compose.screens.assistant.NeuroVScreen
 import com.dark.neuroverse.neurov.mcp.ai.PluginRouter
 import com.dark.plugin_runtime.engine.PluginManager
@@ -62,7 +63,7 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Session onCreate")
-
+        Neuron.init()
         PluginManager.init(context)
         PluginManager.updateInstalledPlugins()
 
@@ -151,6 +152,7 @@ class NeuroSession(context: Context) : VoiceInteractionSession(context) {
         lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         lifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
 
+        Neuron.unloadAllModels()
         // Remove ComposeView to release resources
         composeRoot?.removeAllViews()
         composeRoot = null
