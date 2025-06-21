@@ -18,8 +18,6 @@ import com.dark.neuroverse.compose.screens.temp.NeuronDemoScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        PluginRouter.init(applicationContext)
-        PluginManager.init(applicationContext)
         FirebaseApp.initializeApp(this)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

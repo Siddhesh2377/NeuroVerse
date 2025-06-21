@@ -1,5 +1,6 @@
 package com.dark.ai_manager.ai.local
 
+import android.util.Log
 import com.dark.ai_manager.ai.types.NeuronVariant
 import io.shubham0204.smollm.SmolLM
 import io.shubham0204.smollm.SmolLM.InferenceParams
@@ -108,9 +109,30 @@ object Neuron {
         return responseStr
     }
 
+    suspend fun generateResponseStreaming(input: String): String {
+        val variant = activeVariant ?: error("No active variant selected.")
+        val modelEntry = modelInstances[variant.modelName] ?: error("Model not loaded.")
 
+        modelEntry.job.join()
 
+        val model = modelEntry.instance
 
+        // If needed, you can clean and re-add system prompt here
+        model.addUserMessage("${variant.systemPrompt} $input")
+
+        val outputFlow = model.getResponseAsFlow("${variant.systemPrompt} $input")
+        val fullResponse = StringBuilder()
+
+        // Collect streaming pieces
+        outputFlow.collect { piece ->
+            fullResponse.append(piece)
+            Log.d("NeuronStreaming", "Piece: $piece") // <- You’ll now see streaming parts
+        }
+
+        val responseStr = fullResponse.toString().trim()
+        model.addAssistantMessage(responseStr)
+        return responseStr
+    }
 
     suspend fun generateResponse(input: String, tools: List<Map<String, Any>>? = null): String {
         val variant = activeVariant ?: error("No active variant selected.")
@@ -144,7 +166,6 @@ object Neuron {
 
         return responseStr
     }
-
 
     fun unloadActiveModel() {
         activeVariant?.let {

@@ -3,6 +3,7 @@ package com.dark.neuroverse.neurov.mcp.ai
 import android.content.Context
 import android.util.Log
 import android.view.ViewGroup
+import android.widget.Toast
 import com.dark.ai_manager.ai.api_calls.AiRouter
 import com.dark.ai_manager.ai.local.Neuron
 import com.dark.ai_manager.ai.types.NeuronVariant
@@ -43,32 +44,12 @@ object PluginRouter {
         return db
     }
 
-    private fun phraseContent(content: Any): PluginRouterData {
-        val contentData = when (content) {
-            is String -> JSONObject(content)
-            else -> {
-                Log.e("PluginRouter", "Unexpected content: $content")
-                return PluginRouterData(0, null, "Unexpected response format.")
-            }
-        }
-
-        val code = contentData.optInt("code")
-        val pluginName = contentData.optString("plugin_name")
-        val reason = contentData.optString("message")
-
-        Log.d("PluginRouter", "AI Response: $content")
-
-
-        return PluginRouterData(code, pluginName, reason)
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun process(prompt: String): ViewGroup? {
+    suspend fun process(prompt: String, onPluginLoaded: (String) -> Unit): ViewGroup? {
         return suspendCancellableCoroutine { cont ->
-
             val toolCallInput = JSONObject().apply {
                 put("query", prompt)
-                put("plugins_list", JSONArray().apply {
+                put("plugins", JSONArray().apply {
                     pluginDescriptions.forEach { (name, desc) ->
                         put(JSONObject().apply {
                             put("name", name)
@@ -78,8 +59,12 @@ object PluginRouter {
                 })
             }.toString()
 
+
+            Log.e("PluginRouter", "Tool Call Input:\n$toolCallInput")  // ✅ correct logging
+
+
             scope.launch {
-                val response = Neuron.generateResponseBlocking(toolCallInput)
+                val response = Neuron.generateResponseStreaming(toolCallInput)
                     .substringBefore("<|im_end|>") // Clean trailing tokens if present
                     .trim()
 
@@ -88,9 +73,38 @@ object PluginRouter {
                 // Optionally parse the JSON if you want structured access
                 try {
                     val json = JSONObject(response)
-                    val pluginName = json.getString("plugin")
-                    val reason = json.getString("reason")
-                    Log.d("PluginRouter", "Selected plugin: $pluginName\nReason: $reason")
+                    val code = json.getInt("code")
+                    val pluginName = json.getString("plugin_name")
+                    val reason = json.getString("message")
+
+
+                    when(code){
+                        0 -> {
+
+                        }
+                        1 -> {
+                            PluginManager.runPlugin(pluginName) { pluginInstance ->
+
+                                scope.launch {
+                                    val temp = Neuron.generateResponseStreaming(pluginInstance.submitAiRequest(prompt))
+                                    onPluginLoaded(temp)
+                                }
+
+//
+//                                AiRouter.processRequest(requestBody) { code2, response2 ->
+//                                    val view = pluginInstance.onAiResponse(JSONObject(response2))
+//                                    Log.d("PluginRouter", "Plugin view created.")
+//                                    cont.resume(view) { cause, _, _ -> null?.let { it(cause) } }
+//                                }
+                            }
+                        }
+                    }
+
+
+
+
+                    Log.d("PluginRouter", "AI Response: $response")
+                    Log.d("PluginRouter", "Code: $code \nPlugin Name: $pluginName \nReason: $reason")
                 } catch (e: Exception) {
                     Log.e("PluginRouter", "Invalid JSON: $response", e)
                 }
@@ -145,11 +159,4 @@ object PluginRouter {
 //            }
         }
     }
-
-
-    data class PluginRouterData(
-        val code: Int,
-        val pluginName: String?,
-        val reason: String
-    )
 }

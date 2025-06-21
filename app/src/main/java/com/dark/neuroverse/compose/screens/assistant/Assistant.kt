@@ -67,7 +67,7 @@ fun AssistantScreen(
         if (isProcessing) {
             scope.launch {
                 try {
-                    val response = process(userPrompt)
+                    val response = process(userPrompt) {}
                     pluginView = response
                     Log.e("Assistant Screen", "Router Response is >> $response")
                     showPluginView = true

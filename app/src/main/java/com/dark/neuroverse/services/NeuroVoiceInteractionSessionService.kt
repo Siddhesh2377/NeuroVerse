@@ -30,6 +30,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.dark.neuroverse.compose.screens.assistant.NeuroVScreen
+import com.dark.neuroverse.neurov.mcp.ai.PluginRouter
 import com.dark.plugin_runtime.engine.PluginManager
 
 /**
@@ -39,6 +40,8 @@ import com.dark.plugin_runtime.engine.PluginManager
 class NeuroVoiceInteractionSessionService : VoiceInteractionSessionService() {
     override fun onNewSession(args: Bundle?): VoiceInteractionSession {
         Log.d(TAG, "onNewSession")
+        PluginRouter.init(applicationContext)
+        PluginManager.init(applicationContext)
         return NeuroSession(this)
     }
 

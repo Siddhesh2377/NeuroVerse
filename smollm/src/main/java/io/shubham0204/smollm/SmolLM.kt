@@ -138,7 +138,7 @@ class SmolLM {
     object DefaultInferenceParams {
         val contextSize: Long = 1024L
         val chatTemplate: String = """
-{% set instruction = "You are a JSON bot.\n\nRules:\n- Output only valid JSON.\n- No text, comments, or newlines.\n- Always start with `{` and end with `}`.\n- No nulls or missing fields.\n- Respond quickly.\n\nTask: Match a user query to a plugin from a list.\n\nIf matched:\n{\"code\":1,\"plugin_name\":\"<name>\",\"message\":\"Plugin matched\"}\n\nElse:\n{\"code\":0,\"plugin_name\":null,\"message\":\"No plugin matched\"}" %}
+{% set instruction = "You are a JSON bot.\n\nInstructions:\n- Match the Query with the most suitable plugin from the list.\n- Use plugin descriptions to find the best match.\n- Respond ONLY in JSON format.\n- No extra text, comments, or newlines.\n- Always begin with `{` and end with `}`.\n- Do not return null fields. Fill every field.\n\nIf a plugin matches:\n{\"code\":1,\"plugin_name\":\"<name>\",\"message\":\"Plugin matched\"}\n\nIf no suitable match:\n{\"code\":0,\"plugin_name\":null,\"message\":\"No plugin matched\"}" %}
 {{ '<|im_start|>system ' + instruction + '<|im_end|>\n' }}
 {% for message in messages %}
 {{ '<|im_start|>' + message['role'] + ' ' + message['content'] + '<|im_end|>\n' }}
@@ -146,6 +146,7 @@ class SmolLM {
 {% if add_generation_prompt %}
 {{ '<|im_start|>assistant ' }}
 {% endif %}
+
 """.trimIndent()
 
     }

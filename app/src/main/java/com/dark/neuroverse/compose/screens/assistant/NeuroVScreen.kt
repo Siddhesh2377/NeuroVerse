@@ -528,12 +528,13 @@ fun ActionBox(
                             contentDescription = "Send",
                             modifier = Modifier.clickable {
                                 if (text.isNotBlank()) {
-                                    //viewModel.sendMessage(text)
+                                    val safePrompt = text  // ✨ capture current value before launch
+                                    text = ""              // ✨ clear the input after capturing
                                     scope.launch {
-                                        val response = process(text)
+                                        val response = process(safePrompt) {
+                                            text = it
+                                        }
                                     }
-
-                                    text = ""  // clear input after sending
                                 }
                             })
                     }
